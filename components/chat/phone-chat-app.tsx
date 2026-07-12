@@ -8,6 +8,10 @@ import { ChatRoom } from "./chat-room";
 import { MascotChatRoom } from "./mascot-chat-room";
 import { UserProfilePanel } from "./user-profile-panel";
 import { ChatSession, loadChatSessions, hydrateChatStorage } from "@/lib/chat-storage";
+import { notifyMascotPageContext } from "@/lib/mascot-events";
+import { loadCharacters } from "@/lib/character-storage";
+import { CHAT_OPEN_SESSION_EVENT } from "@/lib/chat-notification-events";
+import { getMascotSettingsSnapshot } from "@/lib/mascot-settings";
 
 type TabKey = "messages" | "contacts" | "feeds" | "me";
 
@@ -19,12 +23,12 @@ export type PhoneChatAppProps = {
     onShareDone?: () => void;
 };
 
-export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSessionId, onSessionChange }: PhoneChatAppProps) {
+export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSessionId, onSessionChange, sharePayload, onShareDone }: PhoneChatAppProps) {
     const [activeTab, setActiveTab] = useState<TabKey>("messages");
     const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
     const [activeMascot, setActiveMascot] = useState(false);
     const [dbReady, setDbReady] = useState(false);
-    const [isSearchActive, setIsSearchActive] = useState(false);
+    const [hideTabBar, setHideTabBar] = useState(false);
 
     useEffect(() => {
         hydrateChatStorage().then(() => {
@@ -36,9 +40,42 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
         });
     }, [initialSessionId]);
 
+    const prevInitSessionId = useRef(initialSessionId);
+    useEffect(() => {
+        if (initialSessionId === prevInitSessionId.current) return;
+        prevInitSessionId.current = initialSessionId;
+        if (!dbReady) return;
+        if (!initialSessionId) { setActiveSession(null); return; }
+        const s = loadChatSessions().find(s => s.id === initialSessionId);
+        if (s) setActiveSession(s);
+    }, [initialSessionId, dbReady]);
+
     useEffect(() => {
         onSessionChange?.(activeSession);
+        if (activeSession) {
+            setActiveMascot(false);
+            // 推送上下文
+            const chars = loadCharacters();
+            const char = chars.find(c => c.id === activeSession.contactId);
+            notifyMascotPageContext({
+                page: "chat",
+                mode: "chatting",
+                label: `聊天 · ${(activeSession as Record<string, unknown>).alias as string || char?.name || "对话"}`,
+                fields: { sessionId: activeSession.id, contactId: activeSession.contactId },
+            });
+        }
     }, [activeSession, onSessionChange]);
+
+    useEffect(() => {
+        if (!activeMascot) return;
+        onSessionChange?.(null);
+        notifyMascotPageContext({
+            page: "chat",
+            mode: "chatting",
+            label: `聊天 · ${getMascotSettingsSnapshot().nickname || "AI助手"}`,
+            fields: { sessionId: "mascot", contactId: "mascot" },
+        });
+    }, [activeMascot, onSessionChange]);
 
     const handleSelectContact = (sess: ChatSession | null) => {
         setActiveMascot(false);
@@ -52,94 +89,124 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
         setActiveTab("messages");
     };
 
-    // 恢复加号功能：切换到联系人并弹出添加
-    const handleAddAction = () => {
-        setActiveTab("contacts");
-        // 模拟触发添加好友事件，原代码中聊天列表会监听到此事件并弹窗
-        window.dispatchEvent(new CustomEvent("chat-open-add-contact", { detail: { characterId: "" } }));
-    };
-
     if (!dbReady) return null;
 
+    // 微信风格的黑色细线条图标 (SVG)
+    const TabIcon = ({ path, active }: { path: string, active: boolean }) => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#07C160" : "#000000"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d={path} />
+        </svg>
+    );
+
     return (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 10, backgroundColor: '#FFFFFF', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+        <div className="chat-app absolute inset-0 flex flex-col overflow-hidden z-10 bg-[#FFFFFF] font-sans">
             
-            {/* 聊天主功能层 */}
-            <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* 聊天主内容区 */}
+            <div className="chat-main-content relative flex-1 flex flex-col overflow-hidden">
                 {activeTab === "messages" && (
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+                    <div className="flex flex-col h-full relative">
                         
-                        {/* 1. 顶部导航栏：微信灰色背景，居中，加宽高度 */}
-                        <div style={{ backgroundColor: '#EDEDED', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, height: '56px', borderBottom: '1px solid #E5E5E5' }}>
-                            <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '20px', color: '#181818', padding: 0, cursor: 'pointer' }}>‹</button>
-                            <span style={{ fontWeight: 'bold', fontSize: '17px', color: '#000000', letterSpacing: '1px' }}>微信</span>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                {/* 搜索按钮 */}
-                                <button onClick={() => setIsSearchActive(!isSearchActive)} style={{ background: 'transparent', border: 'none', fontSize: '18px', color: '#181818', padding: 0, cursor: 'pointer' }}>🔍</button>
-                                {/* 加号按钮 */}
-                                <button onClick={handleAddAction} style={{ background: 'transparent', border: 'none', fontSize: '22px', color: '#181818', padding: 0, lineHeight: 1, cursor: 'pointer' }}>＋</button>
+                        {/* 1. 顶部导航栏：灰色、只有“微信”、左返回、右搜索+加号 */}
+                        <div className="bg-[#EDEDED] px-4 py-3 flex justify-between items-center shrink-0 relative z-10 border-b border-transparent">
+                            <button onClick={onClose} className="w-6 h-6 flex items-center justify-center text-[#181818]">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <span className="font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
+                            <div className="flex items-center gap-2">
+                                <button className="w-6 h-6 flex items-center justify-center text-[#181818]">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                </button>
+                                <button className="w-6 h-6 flex items-center justify-center text-[#181818]">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                </button>
                             </div>
                         </div>
 
-                        {/* 2. 搜索框弹窗（仅点击放大镜出现） */}
-                        {isSearchActive && (
-                           <div style={{ padding: '12px 16px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                               <div style={{ flex: 1, backgroundColor: '#F4F5F7', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                   <span style={{ color: '#999' }}>🔍</span>
-                                   <input autoFocus placeholder="搜索" style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontSize: '15px' }} />
-                               </div>
-                               <button onClick={() => setIsSearchActive(false)} style={{ background: 'transparent', border: 'none', fontSize: '15px', color: '#000' }}>取消</button>
-                           </div>
-                        )}
+                        {/* 2. 删除原来的 Chats 标题，直接留出间距 */}
+                        <div className="bg-[#FFFFFF] shrink-0 pt-2 pb-1"></div>
 
-                        {/* 3. 聊天列表（没有绿点，纯白底） */}
-                        <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#FFFFFF' }}>
-                            <div onClick={handleSelectMascot} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #F5F5F5', cursor: 'pointer' }}>
-                                <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: '#F0F8FF', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px', border: '1px solid #EBEBEB', flexShrink: 0 }}>
-                                    🐱
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#111' }}>AI助手</span>
-                                        <span style={{ color: '#B2B2B2', fontSize: '11px' }}>AI</span>
+                        {/* 3. 搜索框：微信风格浅灰色背景、圆角、放大镜 */}
+                        <div className="px-4 pb-3 bg-[#FFFFFF] shrink-0 mt-[-2px]">
+                            <div className="bg-[#F4F5F7] rounded-lg px-3 py-2 flex items-center gap-2">
+                                <span className="text-[#999] ml-1">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                </span>
+                                <input placeholder="Search chats..." className="w-full bg-transparent outline-none text-[#000] placeholder-[#999] text-[15px]" />
+                            </div>
+                        </div>
+
+                        {/* 4. 分类按钮 */}
+                        <div className="flex gap-2.5 px-4 pb-3 bg-[#FFFFFF] shrink-0">
+                            <button className="bg-[#07C160] text-white text-[13px] font-medium px-4 py-1.5 rounded-full">All</button>
+                            <button className="bg-[#F4F5F7] text-[#555] text-[13px] px-3 py-1.5 rounded-full">Private</button>
+                            <button className="bg-[#F4F5F7] text-[#555] text-[13px] px-3 py-1.5 rounded-full">Groups</button>
+                        </div>
+
+                        {/* 5. 聊天列表：白色背景，去掉头顶绿点 */}
+                        <div className="flex-1 overflow-y-auto bg-[#FFFFFF]">
+                            <div className="px-4 py-3 flex justify-between items-center border-b border-[#F5F5F5]" onClick={handleSelectMascot}>
+                                <div className="flex items-center gap-3 flex-1">
+                                    {/* 头像是圆角方形 */}
+                                    <div className="w-11 h-11 rounded-xl bg-[#F0F8FF] overflow-hidden flex items-center justify-center text-xl border border-[#EBEBEB]">
+                                        🐱
                                     </div>
-                                    <span style={{ color: '#999', fontSize: '13px', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>随时待命~ 角色卡、预设、世界书...</span>
+                                    <div className="flex flex-col flex-1 justify-center">
+                                        <div className="flex justify-between items-start">
+                                            <span className="font-bold text-[#111] text-[16px]">AI助手</span>
+                                            <span className="text-[#B2B2B2] text-[11px]">AI</span>
+                                        </div>
+                                        <span className="text-[#999] text-[13px] truncate max-w-[180px] mt-0.5">随时待命~ 角色卡、预设、世界书、正则、CSS...</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {activeTab === "contacts" && <ChatContactsList onCloseApp={onClose} onSelectSession={handleSelectContact} onSelectMascot={handleSelectMascot} />}
+                {activeTab === "contacts" && (
+                    <ChatContactsList
+                        onCloseApp={onClose}
+                        onSelectSession={handleSelectContact}
+                        onSelectMascot={handleSelectMascot}
+                    />
+                )}
                 {activeTab === "feeds" && <MomentsFeed onCloseApp={onClose} />}
                 {activeTab === "me" && <UserProfilePanel onClose={() => setActiveTab("messages")} />}
             </div>
 
-            {/* 4. 底部导航栏（浅灰背景、黑色图标，极简风格） */}
-            {!activeSession && !activeMascot && (
-                <nav style={{ backgroundColor: '#F7F7F7', borderTop: '1px solid #D9D9D9', flexShrink: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', height: '58px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-                    <button onClick={() => setActiveTab("messages")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'none', border: 'none', width: '25%' }}>
-                        <span style={{ fontSize: '22px', color: activeTab === "messages" ? '#07C160' : '#000000' }}>💬</span>
-                        <span style={{ fontSize: '10px', fontWeight: '500', color: activeTab === "messages" ? '#07C160' : '#888888' }}>微信</span>
+            {/* 6. 底部导航栏：浅灰色背景、黑色线条图标 */}
+            {!activeSession && !activeMascot && !hideTabBar && (
+                <nav className="bg-[#F7F7F7] border-t border-[#D9D9D9] shrink-0 flex justify-around items-center h-[58px]" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("messages")}>
+                        <TabIcon active={activeTab === "messages"} path="M8.5 11h.01M12 11h.01M15.5 11h.01M21 12c0 4.97-4.03 9-9 9-1.58 0-3.07-.41-4.37-1.13l-3.66 1.22 1.26-3.54A8.95 8.95 0 0 1 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#888]"}`}>微信</span>
                     </button>
-                    <button onClick={() => setActiveTab("contacts")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'none', border: 'none', width: '25%' }}>
-                        <span style={{ fontSize: '22px', color: activeTab === "contacts" ? '#07C160' : '#000000' }}>👥</span>
-                        <span style={{ fontSize: '10px', fontWeight: '500', color: activeTab === "contacts" ? '#07C160' : '#888888' }}>通讯录</span>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("contacts")}>
+                        <TabIcon active={activeTab === "contacts"} path="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 5.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 21v-2a4 4 0 0 0-3-3.87" />
+                        <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#888]"}`}>通讯录</span>
                     </button>
-                    <button onClick={() => setActiveTab("feeds")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'none', border: 'none', width: '25%' }}>
-                        <span style={{ fontSize: '22px', color: activeTab === "feeds" ? '#07C160' : '#000000' }}>🌐</span>
-                        <span style={{ fontSize: '10px', fontWeight: '500', color: activeTab === "feeds" ? '#07C160' : '#888888' }}>发现</span>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("feeds")}>
+                        <TabIcon active={activeTab === "feeds"} path="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-8a1 1 0 1 1 2 0v4a1 1 0 1 1-2 0zm0-4a1 1 0 1 1 2 0 1 1 0 1 1-2 0z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#888]"}`}>发现</span>
                     </button>
-                    <button onClick={() => setActiveTab("me")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', background: 'none', border: 'none', width: '25%' }}>
-                        <span style={{ fontSize: '22px', color: activeTab === "me" ? '#07C160' : '#000000' }}>👤</span>
-                        <span style={{ fontSize: '10px', fontWeight: '500', color: activeTab === "me" ? '#07C160' : '#888888' }}>我</span>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("me")}>
+                        <TabIcon active={activeTab === "me"} path="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#888]"}`}>我</span>
                     </button>
                 </nav>
             )}
 
-            {/* 保持聊天室覆盖层 */}
-            {activeSession && <div style={{ position: 'absolute', inset: 0, zIndex: 20, backgroundColor: '#fff' }}><ChatRoom session={activeSession} onBack={() => setActiveSession(null)} /></div>}
-            {activeMascot && <div style={{ position: 'absolute', inset: 0, zIndex: 20, backgroundColor: '#fff' }}><MascotChatRoom onBack={() => setActiveMascot(false)} onDeleted={() => setActiveMascot(false)} /></div>}
+            {/* 保留聊天的覆盖层 */}
+            {activeSession && (
+                <div className="absolute inset-0 z-20 bg-white">
+                    <ChatRoom session={activeSession} onBack={() => setActiveSession(null)} />
+                </div>
+            )}
+            {activeMascot && (
+                <div className="absolute inset-0 z-20 bg-white">
+                    <MascotChatRoom onBack={() => setActiveMascot(false)} onDeleted={() => setActiveMascot(false)} />
+                </div>
+            )}
         </div>
     );
 });
