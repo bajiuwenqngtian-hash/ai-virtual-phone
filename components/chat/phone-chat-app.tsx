@@ -7,13 +7,9 @@ import { MomentsFeed } from "./moments-feed";
 import { ChatRoom } from "./chat-room";
 import { MascotChatRoom } from "./mascot-chat-room";
 import { UserProfilePanel } from "./user-profile-panel";
-import { MessageCircle, Users, Aperture, UserRound } from "lucide-react";
-import { ChatSession, loadChatSessions, pushChatMessage, hydrateChatStorage } from "@/lib/chat-storage";
+import { ChatSession, loadChatSessions, hydrateChatStorage } from "@/lib/chat-storage";
 import { notifyMascotPageContext } from "@/lib/mascot-events";
 import { loadCharacters } from "@/lib/character-storage";
-import { scopeSessionCSS } from "@/lib/css-scoper";
-import { kvGet } from "@/lib/kv-db";
-import { formatXiaohongshuShareForPrompt, type ChatSharePayload } from "@/lib/chat-share";
 import { CHAT_OPEN_SESSION_EVENT, CHAT_OPEN_ADD_CONTACT_EVENT } from "@/lib/chat-notification-events";
 import { getMascotSettingsSnapshot } from "@/lib/mascot-settings";
 
@@ -23,105 +19,42 @@ export type PhoneChatAppProps = {
     onClose: () => void;
     initialSessionId?: string | null;
     onSessionChange?: (session: ChatSession | null) => void;
-    sharePayload?: ChatSharePayload | null;
+    sharePayload?: any | null;
     onShareDone?: () => void;
 };
 
-export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSessionId, onSessionChange, sharePayload, onShareDone }: PhoneChatAppProps) {
+export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSessionId, onSessionChange }: PhoneChatAppProps) {
     const [activeTab, setActiveTab] = useState<TabKey>("messages");
     const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
     const [activeMascot, setActiveMascot] = useState(false);
-    // Chat app-level custom CSS (affects all chat pages, lower priority than per-session CSS)
-    const [chatAppCSS, setChatAppCSS] = useState(() =>
-        typeof window !== "undefined" ? kvGet("chat-app-custom-css") || "" : ""
-    );
-    // Cache all visited sessions so their ChatRoom stays mounted (hidden)
-    const [visitedSessions, setVisitedSessions] = useState<Map<string, ChatSession>>(new Map());
     const [dbReady, setDbReady] = useState(false);
     const [hideTabBar, setHideTabBar] = useState(false);
+    const [isSearchActive, setIsSearchActive] = useState(false);
 
-    // Hydrate IndexedDB → in-memory caches on mount
     useEffect(() => {
         hydrateChatStorage().then(() => {
             setDbReady(true);
-            // Resolve initial session after hydration
             if (initialSessionId) {
                 const s = loadChatSessions().find(s => s.id === initialSessionId);
                 if (s) setActiveSession(s);
             }
         });
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [initialSessionId]);
 
-    // React to external session navigation (e.g., incoming call acceptance)
-    // Only fires when initialSessionId CHANGES after mount (mount case handled by hydration above)
     const prevInitSessionId = useRef(initialSessionId);
     useEffect(() => {
         if (initialSessionId === prevInitSessionId.current) return;
         prevInitSessionId.current = initialSessionId;
         if (!dbReady) return;
-        if (!initialSessionId) {
-            setActiveSession(null);
-            return;
-        }
+        if (!initialSessionId) { setActiveSession(null); return; }
         const s = loadChatSessions().find(s => s.id === initialSessionId);
         if (s) setActiveSession(s);
     }, [initialSessionId, dbReady]);
 
-    // When sharePayload is set, switch to contacts tab (and close any open chat room)
-    useEffect(() => {
-        if (sharePayload) {
-            setActiveSession(null);
-            setActiveMascot(false);
-            setActiveTab("contacts");
-        }
-    }, [sharePayload]);
-
-    useEffect(() => {
-        const handler = (e: Event) => {
-            const sessionId = (e as CustomEvent<{ sessionId?: string }>).detail?.sessionId;
-            if (!sessionId) return;
-            const session = loadChatSessions().find(s => s.id === sessionId);
-            if (!session) return;
-            setActiveMascot(false);
-            setActiveSession(session);
-            setActiveTab("messages");
-        };
-        window.addEventListener(CHAT_OPEN_SESSION_EVENT, handler);
-        return () => window.removeEventListener(CHAT_OPEN_SESSION_EVENT, handler);
-    }, []);
-
-    // 名片点击「加好友」：关会话、切联系人 tab，待添加角色经 prop 交给列表打开添加页
-    const [pendingAddContactId, setPendingAddContactId] = useState<string | null>(null);
-    // 名片来源的原聊天室：添加页按返回时回到这里
-    const addContactReturnSessionRef = useRef<string | null>(null);
-    const activeSessionIdRef = useRef<string | null>(null);
-    activeSessionIdRef.current = activeSession?.id ?? null;
-    useEffect(() => {
-        const handler = (e: Event) => {
-            const characterId = (e as CustomEvent<{ characterId?: string }>).detail?.characterId;
-            if (!characterId) return;
-            addContactReturnSessionRef.current = activeSessionIdRef.current;
-            setActiveSession(null);
-            setActiveMascot(false);
-            setActiveTab("contacts");
-            setPendingAddContactId(characterId);
-        };
-        window.addEventListener(CHAT_OPEN_ADD_CONTACT_EVENT, handler);
-        return () => window.removeEventListener(CHAT_OPEN_ADD_CONTACT_EVENT, handler);
-    }, []);
-
-    // Notify parent of session changes + cache visited session + push mascot context
     useEffect(() => {
         onSessionChange?.(activeSession);
         if (activeSession) {
             setActiveMascot(false);
-            setVisitedSessions(prev => {
-                if (prev.has(activeSession.id)) return prev;
-                const next = new Map(prev);
-                next.set(activeSession.id, activeSession);
-                return next;
-            });
-            // Push session info to mascot context so 小卷 can access sessionId
             const chars = loadCharacters();
             const char = chars.find(c => c.id === activeSession.contactId);
             notifyMascotPageContext({
@@ -131,7 +64,7 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                 fields: { sessionId: activeSession.id, contactId: activeSession.contactId },
             });
         }
-    }, [activeSession]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [activeSession, onSessionChange]);
 
     useEffect(() => {
         if (!activeMascot) return;
@@ -142,50 +75,9 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
             label: `聊天 · ${getMascotSettingsSnapshot().nickname || "AI助手"}`,
             fields: { sessionId: "mascot", contactId: "mascot" },
         });
-    }, [activeMascot]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [activeMascot, onSessionChange]);
 
     const handleSelectContact = (sess: ChatSession | null) => {
-        if (sharePayload && sess) {
-            if (sharePayload.type === "music") {
-                pushChatMessage({
-                    sessionId: sess.id,
-                    role: "user",
-                    content: "",
-                    mediaType: "music_share",
-                    mediaData: {
-                        musicTitle: sharePayload.title,
-                        musicArtist: sharePayload.artist,
-                        label: `${sharePayload.title} - ${sharePayload.artist}`,
-                    },
-                });
-            } else {
-                const content = formatXiaohongshuShareForPrompt({
-                    author: sharePayload.authorName,
-                    title: sharePayload.title,
-                    body: sharePayload.body,
-                    description: sharePayload.description,
-                });
-                pushChatMessage({
-                    sessionId: sess.id,
-                    role: "user",
-                    content,
-                    mediaType: "xiaohongshu_note_share",
-                    mediaData: {
-                        xiaohongshuAuthor: sharePayload.authorName,
-                        xiaohongshuTitle: sharePayload.title,
-                        xiaohongshuBody: sharePayload.body,
-                        xiaohongshuDescription: sharePayload.description,
-                        xiaohongshuNoteType: sharePayload.noteType,
-                        xiaohongshuTags: sharePayload.tags,
-                        xiaohongshuImageAssetId: sharePayload.imageAssetId,
-                        xiaohongshuCoverIcon: sharePayload.coverIcon,
-                        xiaohongshuTone: sharePayload.tone,
-                    },
-                });
-            }
-            window.dispatchEvent(new CustomEvent("chat-messages-updated", { detail: { sessionId: sess.id } }));
-            onShareDone?.();
-        }
         setActiveMascot(false);
         setActiveSession(sess);
         setActiveTab("messages");
@@ -197,119 +89,121 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
         setActiveTab("messages");
     };
 
-    // Listen for CSS updates from settings panel
-    useEffect(() => {
-        const onCSSUpdate = () => setChatAppCSS(kvGet("chat-app-custom-css") || "");
-        window.addEventListener("chat-app-css-updated", onCSSUpdate);
-        return () => window.removeEventListener("chat-app-css-updated", onCSSUpdate);
-    }, []);
+    // 加号按钮功能：回到联系人页面，并触发添加面板
+    const handleAddAction = () => {
+        setActiveTab("contacts");
+        window.dispatchEvent(new CustomEvent(CHAT_OPEN_ADD_CONTACT_EVENT, { detail: { characterId: "" } }));
+    };
 
-    // Listen for tab bar hide/show from sub-pages (e.g. CSS editor)
-    useEffect(() => {
-        const onHide = (e: Event) => setHideTabBar((e as CustomEvent).detail);
-        window.addEventListener("chat-hide-tabbar", onHide);
-        return () => window.removeEventListener("chat-hide-tabbar", onHide);
-    }, []);
-
-    // Wait for IndexedDB hydration before rendering
     if (!dbReady) return null;
 
+    // 微信风格的黑色细线条图标 (SVG)
+    const TabIcon = ({ path, active }: { path: string, active: boolean }) => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#07C160" : "#000000"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d={path} />
+        </svg>
+    );
+
     return (
-        <div
-            className="chat-app absolute inset-0 flex flex-col overflow-hidden z-10"
-            {...(activeSession || activeMascot ? { "data-room-active": "" } : {})}
-            {...(hideTabBar ? { "data-tabbar-hidden": "" } : {})}
-        >
-            {/* Chat app-level custom CSS (lower priority than per-session CSS) */}
-            {chatAppCSS && <style dangerouslySetInnerHTML={{ __html: scopeSessionCSS(chatAppCSS, ".chat-app") }} />}
-            {/* The Main Content Area */}
-            <div className="chat-main-content relative flex-1 flex flex-col overflow-hidden" {...(activeSession || activeMascot ? { "data-covered-by-room": "" } : {})}>
-                {activeTab === "messages" && <ChatMessageList onCloseApp={onClose} activeSession={activeSession} onSelectSession={(session) => { setActiveMascot(false); setActiveSession(session); }} onSelectMascot={handleSelectMascot} />}
+        <div className="chat-app absolute inset-0 flex flex-col overflow-hidden z-10 bg-[#FFFFFF] font-sans">
+            
+            <div className="chat-main-content relative flex-1 flex flex-col overflow-hidden">
+                {activeTab === "messages" && (
+                    <div className="flex flex-col h-full relative">
+                        
+                        {/* 1. 顶部导航栏：纯微信灰色、居中的“微信”、功能按钮 */}
+                        <div className="bg-[#EDEDED] px-4 flex items-center justify-between shrink-0 border-b border-[#E5E5E5] h-[56px] pt-[env(safe-area-inset-top,8px)]">
+                            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-[#181818]">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <div className="flex-1 text-center">
+                                <span className="font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <button onClick={() => setIsSearchActive(!isSearchActive)} className="w-8 h-8 flex items-center justify-center text-[#181818]">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                </button>
+                                <button onClick={handleAddAction} className="w-8 h-8 flex items-center justify-center text-[#181818]">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 2. 搜索框：点击放大镜后弹出（完美还原微信点击搜索行为） */}
+                        {isSearchActive && (
+                           <div className="px-4 py-2 bg-[#FFFFFF] shrink-0 border-b border-[#EBEBEB] z-20 flex items-center gap-3">
+                               <div className="flex-1 bg-[#F4F5F7] rounded-lg px-3 py-2 flex items-center gap-2">
+                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                   <input autoFocus placeholder="搜索" className="w-full bg-transparent outline-none text-[#000] placeholder-[#999] text-[15px]" />
+                               </div>
+                               <button onClick={() => setIsSearchActive(false)} className="text-[#000] text-[15px] font-medium">取消</button>
+                           </div>
+                        )}
+
+                        {/* 3. 聊天列表：完美的微信白底、去绿点 */}
+                        <div className="flex-1 overflow-y-auto bg-[#FFFFFF] mt-1">
+                            <div className="px-4 py-3 flex justify-between items-center border-b border-[#F5F5F5]" onClick={handleSelectMascot}>
+                                <div className="flex items-center gap-3 flex-1">
+                                    <div className="w-11 h-11 rounded-xl bg-[#F0F8FF] overflow-hidden flex items-center justify-center text-xl border border-[#EBEBEB]">
+                                        🐱
+                                    </div>
+                                    <div className="flex flex-col flex-1 justify-center">
+                                        <div className="flex justify-between items-start">
+                                            <span className="font-bold text-[#111] text-[16px]">AI助手</span>
+                                            <span className="text-[#B2B2B2] text-[11px]">AI</span>
+                                        </div>
+                                        <span className="text-[#999] text-[13px] truncate max-w-[180px] mt-0.5">随时待命~ 角色卡、预设、世界书、正则、CSS...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === "contacts" && (
                     <ChatContactsList
                         onCloseApp={onClose}
                         onSelectSession={handleSelectContact}
                         onSelectMascot={handleSelectMascot}
-                        pendingAddContactId={pendingAddContactId}
-                        onPendingAddContactConsumed={() => setPendingAddContactId(null)}
-                        onPendingAddContactBack={() => {
-                            const sessionId = addContactReturnSessionRef.current;
-                            addContactReturnSessionRef.current = null;
-                            if (!sessionId) return;
-                            const session = loadChatSessions().find(s => s.id === sessionId);
-                            if (!session) return;
-                            setActiveSession(session);
-                            setActiveTab("messages");
-                        }}
                     />
                 )}
                 {activeTab === "feeds" && <MomentsFeed onCloseApp={onClose} />}
                 {activeTab === "me" && <UserProfilePanel onClose={() => setActiveTab("messages")} />}
             </div>
 
-            {/* Bottom Navigation Bar — hide when inside a chat room */}
-            <nav className="chat-tab-bar chat-bottom-glass-bar" data-ui="nav" style={{ display: activeSession || activeMascot || hideTabBar ? "none" : undefined }}>
-                <button
-                    className={`chat-tab ${activeTab === "messages" ? "chat-tab-active" : ""}`}
-                    onClick={() => setActiveTab("messages")}
-                >
-                    <MessageCircleIcon active={activeTab === "messages"} />
-                    <span style={{ fontSize: "calc(10px*var(--app-text-scale,1))", color: activeTab === "messages" ? undefined : "var(--c-text)" }}>消息</span>
-                </button>
-                <button
-                    className={`chat-tab ${activeTab === "contacts" ? "chat-tab-active" : ""}`}
-                    onClick={() => setActiveTab("contacts")}
-                >
-                    <UsersIcon active={activeTab === "contacts"} />
-                    <span style={{ fontSize: "calc(10px*var(--app-text-scale,1))", color: activeTab === "contacts" ? undefined : "var(--c-text)" }}>联系人</span>
-                </button>
-                <button
-                    className={`chat-tab ${activeTab === "feeds" ? "chat-tab-active" : ""}`}
-                    onClick={() => setActiveTab("feeds")}
-                >
-                    <CompassIcon active={activeTab === "feeds"} />
-                    <span style={{ fontSize: "calc(10px*var(--app-text-scale,1))", color: activeTab === "feeds" ? undefined : "var(--c-text)" }}>动态</span>
-                </button>
-                <button
-                    className={`chat-tab ${activeTab === "me" ? "chat-tab-active" : ""}`}
-                    onClick={() => setActiveTab("me")}
-                >
-                    <MeIcon active={activeTab === "me"} />
-                    <span style={{ fontSize: "calc(10px*var(--app-text-scale,1))", color: activeTab === "me" ? undefined : "var(--c-text)" }}>主页</span>
-                </button>
-            </nav>
+            {/* 4. 底部导航栏：浅灰背景、黑色图标，文字居下 */}
+            {!activeSession && !activeMascot && !hideTabBar && (
+                <nav className="bg-[#F7F7F7] border-t border-[#D9D9D9] shrink-0 flex justify-around items-center h-[58px]" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("messages")}>
+                        <TabIcon active={activeTab === "messages"} path="M8.5 11h.01M12 11h.01M15.5 11h.01M21 12c0 4.97-4.03 9-9 9-1.58 0-3.07-.41-4.37-1.13l-3.66 1.22 1.26-3.54A8.95 8.95 0 0 1 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#888]"}`}>微信</span>
+                    </button>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("contacts")}>
+                        <TabIcon active={activeTab === "contacts"} path="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 5.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 21v-2a4 4 0 0 0-3-3.87" />
+                        <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#888]"}`}>通讯录</span>
+                    </button>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("feeds")}>
+                        <TabIcon active={activeTab === "feeds"} path="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-8a1 1 0 1 1 2 0v4a1 1 0 1 1-2 0zm0-4a1 1 0 1 1 2 0 1 1 0 1 1-2 0z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#888]"}`}>发现</span>
+                    </button>
+                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("me")}>
+                        <TabIcon active={activeTab === "me"} path="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                        <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#888]"}`}>我</span>
+                    </button>
+                </nav>
+            )}
 
-            {/* Chat Rooms — all visited sessions stay mounted, only active one is visible */}
-            {[...visitedSessions.values()].map(sess => (
-                <div key={sess.id} style={{ display: activeSession?.id === sess.id ? undefined : 'none' }} className="chat-room-layer absolute inset-0">
-                    <ChatRoom session={sess} onBack={() => setActiveSession(null)} />
+            {/* 保留聊天的覆盖层（原样保留功能） */}
+            {activeSession && (
+                <div className="absolute inset-0 z-20 bg-white">
+                    <ChatRoom session={activeSession} onBack={() => setActiveSession(null)} />
                 </div>
-            ))}
+            )}
             {activeMascot && (
-                <div className="chat-room-layer absolute inset-0">
-                    <MascotChatRoom
-                        onBack={() => setActiveMascot(false)}
-                        onDeleted={() => setActiveMascot(false)}
-                    />
+                <div className="absolute inset-0 z-20 bg-white">
+                    <MascotChatRoom onBack={() => setActiveMascot(false)} onDeleted={() => setActiveMascot(false)} />
                 </div>
             )}
         </div>
     );
 });
-
-// Refined Icons
-function MessageCircleIcon({ active }: { active: boolean }) {
-    return <MessageCircle fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.7} size={20} style={{ transform: active ? "scale(1.1)" : "scale(1)", transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)" }} />;
-}
-
-function UsersIcon({ active }: { active: boolean }) {
-    return <Users fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.7} size={20} style={{ transform: active ? "scale(1.1)" : "scale(1)", transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)" }} />;
-}
-
-function CompassIcon({ active }: { active: boolean }) {
-    return <Aperture fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.7} size={20} style={{ transform: active ? "scale(1.1) rotate(25deg)" : "scale(1) rotate(0deg)", transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)" }} />;
-}
-
-function MeIcon({ active }: { active: boolean }) {
-    return <UserRound fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.7} size={20} style={{ transform: active ? "scale(1.1)" : "scale(1)", transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)" }} />;
-}
