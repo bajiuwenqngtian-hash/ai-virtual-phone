@@ -129,10 +129,10 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                 {activeTab === "messages" && (
                     <div className="flex flex-col h-full relative">
                         
-                        {/* 1. 顶部导航栏：删除了左侧尖头，文字完美居中 */}
+                        {/* 1. 顶部导航栏：隐形返回键 */}
                         <div className="bg-[#EDEDED] px-4 flex items-center justify-between shrink-0 border-b border-[#E5E5E5] min-h-[68px] pt-[max(env(safe-area-inset-top,12px),12px)] pb-2">
-                            {/* 这里放了一个空的占位块，这样右边的按钮依然能被 flex 顶在最右边 */}
-                            <div className="w-8 h-8"></div>
+                            {/* 【重点修改】这里没有箭头了，但点击这个空白区域可以触发 onClose 返回桌面！ */}
+                            <div className="w-8 h-8 cursor-pointer" onClick={onClose}></div>
                             
                             <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
                             
@@ -146,7 +146,7 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                             </div>
                         </div>
 
-                        {/* 2. 搜索框：放大镜点开出现的搜索栏 */}
+                        {/* 2. 搜索框 */}
                         {isSearchActive && (
                            <div className="px-4 py-2 bg-[#FFFFFF] shrink-0 border-b border-[#EBEBEB] z-20 flex items-center gap-3">
                                <div className="flex-1 bg-[#F4F5F7] rounded-lg px-3 py-2 flex items-center gap-2">
