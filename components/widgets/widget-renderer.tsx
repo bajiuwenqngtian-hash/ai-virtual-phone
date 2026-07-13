@@ -344,7 +344,6 @@ function FreestyleFrame36Widget(_props: {
     </div>
   );
 }
-
 // ----------------------------------------------------
 //   Frame 49 Widget (Freestyle)
 // ----------------------------------------------------
@@ -673,197 +672,6 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
             className="ui-input"
             value={editSig}
             onChange={(e) => setEditSig(e.target.value)}
-            placeholder="let this moment be the first chapter "
-            style={{ width: "100%" }}
-          />
-        </ContentDialog>,
-        document.querySelector(".phone-shell") ?? document.body
-      )}
-    </>
-  );
-}
-  function handleSave() {
-    onConfigChange?.(widgetId, { ...config, username: editText.trim() || "OLD ORANGE" });
-    setShowEdit(false);
-  }
-
-  return (
-    <div className="wg-my-space">
-      {input}
-      <div className="wg-ms-top">
-        <svg viewBox="0 0 13.9 13.9" width="16" height="16" className="wg-ms-icon wg-ms-icon-user">
-          <g>
-            <path d="M0.6,12.8c-0.3,0-0.6-0.3-0.6-0.6c0-2.5,2.3-4.5,5.2-4.5c1,0,2,0.3,2.9,0.8C8.4,8.7,8.5,9,8.3,9.3 C8.1,9.5,7.8,9.6,7.5,9.5C6.8,9.1,6,8.9,5.2,8.9c-2.2,0-4.1,1.5-4.1,3.4C1.1,12.6,0.9,12.8,0.6,12.8z"/>
-            <path d="M10.7,13.9c-0.3,0-0.6-0.3-0.6-0.6V8c0-0.3,0.3-0.6,0.6-0.6c0.3,0,0.6,0.3,0.6,0.6v5.3C11.3,13.7,11,13.9,10.7,13.9z"/>
-            <path d="M13.4,11.2H8c-0.3,0-0.6-0.3-0.6-0.6c0-0.3,0.3-0.6,0.6-0.6h5.3c0.3,0,0.6,0.3,0.6,0.6C13.9,11,13.7,11.2,13.4,11.2z"/>
-            <path d="M5.3,6.8c-1.9,0-3.4-1.5-3.4-3.4S3.5,0,5.3,0c1.9,0,3.4,1.5,3.4,3.4S7.2,6.8,5.3,6.8z M5.3,1.1c-1.3,0-2.3,1-2.3,2.3 s1,2.3,2.3,2.3c1.3,0,2.3-1,2.3-2.3S6.6,1.1,5.3,1.1z"/>
-          </g>
-        </svg>
-
-        <div className="wg-ms-title">*｡My Space｡*</div>
-// ----------------------------------------------------
-//   My Space Personal Profile Widget (New "Yuli" Style)
-// ----------------------------------------------------
-function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
-  const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
-  const username = typeof config?.username === "string" ? config.username : "Yuli";
-  const signature = typeof config?.signature === "string" ? config.signature : "";
-  
-  const { triggerUpload, input } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
-  
-  // 名字和签名的编辑状态
-  const [showNameEdit, setShowNameEdit] = useState(false);
-  const [editName, setEditName] = useState(username);
-  const [showSigEdit, setShowSigEdit] = useState(false);
-  const [editSig, setEditSig] = useState(signature);
-
-  function handleNameClick(e: React.MouseEvent) {
-    if (preview) return;
-    e.stopPropagation();
-    setEditName(username);
-    setShowNameEdit(true);
-  }
-
-  function handleSigClick(e: React.MouseEvent) {
-    if (preview) return;
-    e.stopPropagation();
-    setEditSig(signature);
-    setShowSigEdit(true);
-  }
-
-  function handleSaveName() {
-    onConfigChange?.(widgetId, { ...config, username: editName.trim() || "Yuli" });
-    setShowNameEdit(false);
-  }
-
-  function handleSaveSig() {
-    onConfigChange?.(widgetId, { ...config, signature: editSig.trim() });
-    setShowSigEdit(false);
-  }
-
-  return (
-    <>
-      {input}
-      {/* 外部白色毛玻璃卡片 */}
-      <div className="relative w-full h-full bg-white/80 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-xl flex flex-col items-center pt-16 pb-8 px-4 box-border overflow-visible">
-        
-        {/* 探出半个的圆形头像 */}
-        <div 
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
-          onClick={preview ? undefined : triggerUpload}
-        >
-// ----------------------------------------------------
-//   My Space Personal Profile Widget (New "Yuli" Style)
-// ----------------------------------------------------
-function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
-  const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
-  const username = typeof config?.username === "string" ? config.username : "Yuli";
-  const signature = typeof config?.signature === "string" ? config.signature : "";
-  
-  const { triggerUpload, input } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
-  
-  // 名字和签名的编辑状态
-  const [showNameEdit, setShowNameEdit] = useState(false);
-  const [editName, setEditName] = useState(username);
-  const [showSigEdit, setShowSigEdit] = useState(false);
-  const [editSig, setEditSig] = useState(signature);
-
-  function handleNameClick(e: React.MouseEvent) {
-    if (preview) return;
-    e.stopPropagation();
-    setEditName(username);
-    setShowNameEdit(true);
-  }
-
-  function handleSigClick(e: React.MouseEvent) {
-    if (preview) return;
-    e.stopPropagation();
-    setEditSig(signature);
-    setShowSigEdit(true);
-  }
-
-  function handleSaveName() {
-    onConfigChange?.(widgetId, { ...config, username: editName.trim() || "Yuli" });
-    setShowNameEdit(false);
-  }
-
-  function handleSaveSig() {
-    onConfigChange?.(widgetId, { ...config, signature: editSig.trim() });
-    setShowSigEdit(false);
-  }
-
-  return (
-    <>
-      {input}
-      {/* 外部白色毛玻璃卡片 */}
-      <div className="relative w-full h-full bg-white/80 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-xl flex flex-col items-center pt-16 pb-8 px-4 box-border overflow-visible">
-        
-        {/* 探出半个的圆形头像 */}
-        <div 
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
-          onClick={preview ? undefined : triggerUpload}
-        >
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-gray-400 text-xs">点击换图</span>
-          )}
-        </div>
-
-        {/* 可编辑的名字 */}
-        <div 
-          className="text-[22px] font-medium text-[#5b6e82] tracking-wide cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={handleNameClick}
-        >
-          {username}
-        </div>
-
-        {/* 可编辑的个性签名 */}
-        <div 
-          className="mt-2 text-[14px] text-gray-500 font-light text-center cursor-pointer hover:opacity-80 transition-opacity min-h-[1.5em]"
-          onClick={handleSigClick}
-        >
-          {signature || <span className="text-gray-400 text-xs">点我编辑个性签名...</span>}
-        </div>
-
-        {/* 底部唯美标签 */}
-        <div className="mt-6 text-[13px] text-[#6b8cae] tracking-wide flex items-center gap-1">
-          🩷 aegoromantic 🩷
-        </div>
-
-      </div>
-
-      {/* 名字编辑弹窗 */}
-      {showNameEdit && !preview && createPortal(
-        <ContentDialog
-          title="编辑名字"
-          onConfirm={handleSaveName}
-          onCancel={() => setShowNameEdit(false)}
-        >
-          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入你的名字</label>
-          <input
-            className="ui-input"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            placeholder="Yuli"
-            style={{ width: "100%" }}
-          />
-        </ContentDialog>,
-        document.querySelector(".phone-shell") ?? document.body
-      )}
-
-      {/* 签名编辑弹窗 */}
-      {showSigEdit && !preview && createPortal(
-        <ContentDialog
-          title="编辑个性签名"
-          onConfirm={handleSaveSig}
-          onCancel={() => setShowSigEdit(false)}
-        >
-          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>写一句你的心情</label>
-          <input
-            className="ui-input"
-            value={editSig}
-            onChange={(e) => setEditSig(e.target.value)}
             placeholder="let this moment be the first chapter"
             style={{ width: "100%" }}
           />
@@ -872,7 +680,7 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
       )}
     </>
   );
-          }
+}
 // ----------------------------------------------------
 //   Social Post Widget (New Clean White Style)
 // ----------------------------------------------------
@@ -1530,7 +1338,6 @@ function InterviewMagazineWidget({
     </div>
   );
 }
-
 /* ══════════════════════════════════════════
    11. Kaomoji Status Bar — 颜文字状态栏 (1x4)
    ══════════════════════════════════════════ */
@@ -2275,7 +2082,5 @@ function PostcardWidget({ config, widgetId, onConfigChange, preview }: any) {
         document.body
       )}
     </div>
-
-
   );
 }
