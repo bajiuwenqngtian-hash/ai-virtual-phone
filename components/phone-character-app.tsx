@@ -2607,8 +2607,8 @@ function NpcGeneratorSheet({ characters, onClose, onConfirm }: {
             <button className="wt-btn flex-1" onClick={onClose} disabled={busy}>取消</button>
           </div>
         </div>
-      )}
+        )}
     </div>
-  </div>
-);
-    }
+  );
+}
+
