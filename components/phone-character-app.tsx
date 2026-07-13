@@ -2609,6 +2609,7 @@ function NpcGeneratorSheet({ characters, onClose, onConfirm }: {
         </div>
         )}
     </div>
+    </div>
   );
 }
 
