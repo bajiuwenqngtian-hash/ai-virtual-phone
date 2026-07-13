@@ -31,10 +31,8 @@ type ChatContactsListProps = {
     onCloseApp: () => void;
     onSelectSession: (session: ChatSession | null) => void;
     onSelectMascot: () => void;
-    /** 名片点击「加好友」：切到本 tab 后待打开添加页的角色 id */
     pendingAddContactId?: string | null;
     onPendingAddContactConsumed?: () => void;
-    /** 名片来源的添加页按返回时回到原聊天室 */
     onPendingAddContactBack?: () => void;
 };
 
@@ -51,7 +49,6 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
     const [addResult, setAddResult] = useState<Character | null | undefined>(undefined);
     const [isSendingAdd, setIsSendingAdd] = useState(false);
     const [greetingText, setGreetingText] = useState("");
-    // 添加页是否由名片打开：返回时应回到原聊天室而非联系人列表
     const addFromCardRef = useRef(false);
     const mascotSettings = useSyncExternalStore(subscribeMascotSettings, getMascotSettingsSnapshot, getMascotSettingsSnapshot);
     const [mascotAvatarUrl, setMascotAvatarUrl] = useState(mascotSettings.avatarImage || DEFAULT_MASCOT_AVATAR);
@@ -70,8 +67,6 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
         return () => { cancelled = true; };
     }, [mascotSettings.avatarImage]);
 
-    // 名片点击「添加到通讯录」：phone-chat-app 切到本 tab 后由 prop 传入待添加角色，
-    // 打开添加页并预载资料
     useEffect(() => {
         if (!pendingAddContactId) return;
         const found = loadCharacters().find(c => c.id === pendingAddContactId);
@@ -82,16 +77,12 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
         setAddQuery(found.wechatID || found.id);
         setAddResult(found);
         setIsSendingAdd(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingAddContactId]);
+    }, [pendingAddContactId, onPendingAddContactConsumed]);
 
-    /** Get the pinyin initial letter (uppercase A-Z), fallback to # */
     function getInitial(name: string): string {
         if (!name) return "#";
         const first = name.charAt(0);
-        // Already A-Z or a-z
         if (/[a-zA-Z]/.test(first)) return first.toUpperCase();
-        // Chinese → pinyin
         const py = pinyin(first, { toneType: "none", type: "array" });
         if (py.length > 0 && /[a-zA-Z]/.test(py[0].charAt(0))) {
             return py[0].charAt(0).toUpperCase();
@@ -116,8 +107,7 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
         setLatestPost(map);
 
         setPendingRequests(getPendingFriendRequests());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [chars]);
 
     useEffect(() => {
         refresh();
@@ -126,7 +116,6 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
         return () => window.removeEventListener("friend-requests-updated", handler);
     }, [refresh]);
 
-    /** Group contacts by pinyin initial */
     const { grouped, indexLetters } = useMemo(() => {
         const keyword = deferredContactFilter.trim().toLowerCase();
         const filtered = keyword
@@ -137,14 +126,12 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
             const letter = getInitial(c.char?.name || "");
             (map[letter] ??= []).push(c);
         }
-        // Sort keys: A-Z first, then #
         const sorted = Object.keys(map).sort((a, b) => {
             if (a === "#") return 1;
             if (b === "#") return -1;
             return a.localeCompare(b);
         });
         return { grouped: map, indexLetters: sorted };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [contacts, deferredContactFilter]);
 
     const handleAccept = async (req: FriendRequest) => {
@@ -168,8 +155,6 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
             updateFriendRequestStatus(req.id, "rejected");
             dispatchFriendRequestUpdated();
             setSelectedRequest(null);
-
-            // Trigger AI's next attempt (fire-and-forget)
             triggerRejectReaction(req.characterId).catch(() => {});
             refresh();
         } finally {
@@ -378,7 +363,6 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
                 return (
                     <div className="modal-overlay" onClick={() => !isProcessing && setSelectedRequest(null)}>
                         <div className="modal-dialog freq-dialog" onClick={e => e.stopPropagation()}>
-                            {/* Avatar */}
                             <div className="freq-detail-avatar">
                                 {char?.avatar ? (
                                     <img src={char.avatar} alt="" />
@@ -388,18 +372,12 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
                                     </div>
                                 )}
                             </div>
-
-                            {/* Name */}
                             <div className="ts-17 font-semibold text-center text-[var(--c-text)]">
                                 {char?.name || "未知角色"}
                             </div>
-
-                            {/* Message */}
                             <div className="freq-detail-msg">
                                 {selectedRequest.message}
                             </div>
-
-                            {/* Actions */}
                             <div className="flex gap-3 w-full">
                                 <button
                                     onClick={() => handleReject(selectedRequest)}
@@ -424,156 +402,136 @@ export function ChatContactsList({ onCloseApp, onSelectSession, onSelectMascot, 
             {/* Add Friend Modal */}
             {isAddFriendOpen && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 9999, background: '#ffffff' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'var(--c-page-body-bg)' }}>
-                {/* 内部使用了自定义的 PageShell，保证了覆盖层拥有独立顶部，不会与前面的微信顶栏冲突 */}
-                <div className="relative flex flex-col h-full bg-white">
-                    <div className="absolute top-0 left-0 right-0 h-[70px] z-30 bg-[#EDEDED] flex items-center justify-between border-b border-[#E5E5E5] px-4 pt-[max(env(safe-area-inset-top,12px),12px)]">
-                        <button className="w-8 h-8 flex items-center justify-center text-[#181818]" onClick={() => { setIsAddFriendOpen(false); if (addFromCardRef.current) { addFromCardRef.current = false; onPendingAddContactBack?.(); } }}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                        </button>
-                        <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">添加朋友</span>
-                        <div className="w-8 h-8"></div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-4 pt-[70px] pb-6">
-                        {!addResult && addResult !== null && (
-                            <div className="page-menu">
-                                <div className="menu-group">
-                                    <div className="menu-item">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-icon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                        <input
-                                            autoFocus
-                                            placeholder="微信号/手机号"
-                                            value={addQuery}
-                                            onChange={(e) => { setAddQuery(e.target.value); setAddResult(undefined); }}
-                                            className="ui-input ui-input-inline"
-                                        />
-                                        {addQuery && (
-                                            <button onClick={() => setAddQuery("")} className="ui-bare-btn text-[var(--c-icon)]">
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z" /></svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                    {addQuery.trim().length > 0 && (
-                                        <button
-                                            className="menu-item"
-                                            onClick={() => {
-                                                const found = chars.find(c => c.wechatID === addQuery.trim() || c.id === addQuery.trim());
-                                                setAddResult(found || null);
-                                            }}
-                                        >
-                                            <div className="menu-icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-success)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                            </div>
-                                            <div className="menu-label-group">
-                                                <span className="menu-label">搜索：<span className="text-[var(--c-success)]">{addQuery}</span></span>
-                                            </div>
-                                        </button>
-                                    )}
-                                </div>
-                                {!mascotSettings.chatEnabled && (
-                                    <div className="menu-group" style={{ marginTop: 12 }}>
-                                        <div className="menu-item" style={{ pointerEvents: "none" }}>
-                                            <span className="menu-desc">可添加的内置助手</span>
-                                        </div>
-                                        <button
-                                            className="menu-item"
-                                            onClick={() => {
-                                                updateMascotSettings({ chatEnabled: true });
-                                                addFromCardRef.current = false;
-                                                setIsAddFriendOpen(false);
-                                                setAddQuery("");
-                                                setAddResult(undefined);
-                                                setIsSendingAdd(false);
-                                                onSelectMascot();
-                                            }}
-                                        >
-                                            <div className="add-friend-avatar" style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#fff" }}>
-                                                <img src={mascotAvatarUrl} className="w-full h-full object-contain p-[2px]" alt="" />
-                                            </div>
-                                            <div className="menu-label-group" style={{ minWidth: 0 }}>
-                                                <span className="menu-label">AI助手</span>
-                                                <span className="menu-desc">重新添加后不会自动打招呼</span>
-                                            </div>
-                                        </button>
-                                    </div>
-                                )}
+                    <div style={{ position: 'absolute', inset: 0, background: 'var(--c-page-body-bg)' }}>
+                        <div className="relative flex flex-col h-full bg-white">
+                            <div className="absolute top-0 left-0 right-0 h-[70px] z-30 bg-[#EDEDED] flex items-center justify-between border-b border-[#E5E5E5] px-4 pt-[max(env(safe-area-inset-top,12px),12px)]">
+                                <button className="w-8 h-8 flex items-center justify-center text-[#181818]" onClick={() => { setIsAddFriendOpen(false); if (addFromCardRef.current) { addFromCardRef.current = false; onPendingAddContactBack?.(); } }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                                </button>
+                                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">添加朋友</span>
+                                <div className="w-8 h-8"></div>
                             </div>
-                        )}
-                        {addResult === null && (
-                            <div className="ui-empty"><span className="menu-desc">该用户不存在</span></div>
-                        )}
-                        {addResult && !isSendingAdd && (
-                            <div className="page-menu">
-                                <div className="menu-group">
-                                    <div className="menu-item !items-start">
-                                        <div className="add-friend-avatar">
-                                            {addResult.avatar ? (
-                                                <img src={addResult.avatar} className="w-full h-full object-cover" alt="" />
-                                            ) : (
-                                                <ChatFallbackAvatar />
+                            <div className="flex-1 overflow-y-auto px-4 pt-[70px] pb-6">
+                                {!addResult && addResult !== null && (
+                                    <div className="page-menu">
+                                        <div className="menu-group">
+                                            <div className="menu-item">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-icon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                                <input
+                                                    autoFocus
+                                                    placeholder="微信号/手机号"
+                                                    value={addQuery}
+                                                    onChange={(e) => { setAddQuery(e.target.value); setAddResult(undefined); }}
+                                                    className="ui-input ui-input-inline"
+                                                />
+                                                {addQuery && (
+                                                    <button onClick={() => setAddQuery("")} className="ui-bare-btn text-[var(--c-icon)]">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z" /></svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {addQuery.trim().length > 0 && (
+                                                <button
+                                                    className="menu-item"
+                                                    onClick={() => {
+                                                        const found = chars.find(c => c.wechatID === addQuery.trim() || c.id === addQuery.trim());
+                                                        setAddResult(found || null);
+                                                    }}
+                                                >
+                                                    <div className="menu-icon">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-success)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                                    </div>
+                                                    <div className="menu-label-group">
+                                                        <span className="menu-label">搜索：<span className="text-[var(--c-success)]">{addQuery}</span></span>
+                                                    </div>
+                                                </button>
                                             )}
                                         </div>
-                                        <div className="menu-label-group">
-                                            <div className="ts-18 font-bold text-[var(--c-text-title)] mb-1">{addResult.name || "UNNAMED"}</div>
-                                            <div className="menu-desc">微信号: {addResult.wechatID || "N/A"}</div>
-                                            <div className="menu-desc">个性签名: {addResult.persona ? addResult.persona.slice(0, 30) + (addResult.persona.length > 30 ? "..." : "") : "暂无"}</div>
+                                        {!mascotSettings.chatEnabled && (
+                                            <div className="menu-group" style={{ marginTop: 12 }}>
+                                                <div className="menu-item" style={{ pointerEvents: "none" }}>
+                                                    <span className="menu-desc">可添加的内置助手</span>
+                                                </div>
+                                                <button
+                                                    className="menu-item"
+                                                    onClick={() => {
+                                                        updateMascotSettings({ chatEnabled: true });
+                                                        addFromCardRef.current = false;
+                                                        setIsAddFriendOpen(false);
+                                                        setAddQuery("");
+                                                        setAddResult(undefined);
+                                                        setIsSendingAdd(false);
+                                                        onSelectMascot();
+                                                    }}
+                                                >
+                                                    <div className="add-friend-avatar" style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#fff" }}>
+                                                        <img src={mascotAvatarUrl} className="w-full h-full object-contain p-[2px]" alt="" />
+                                                    </div>
+                                                    <div className="menu-label-group" style={{ minWidth: 0 }}>
+                                                        <span className="menu-label">AI助手</span>
+                                                        <span className="menu-desc">重新添加后不会自动打招呼</span>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {addResult === null && (
+                                    <div className="ui-empty"><span className="menu-desc">该用户不存在</span></div>
+                                )}
+                                {addResult && !isSendingAdd && (
+                                    <div className="page-menu">
+                                        <div className="menu-group">
+                                            <div className="menu-item !items-start">
+                                                <div className="add-friend-avatar">
+                                                    {addResult.avatar ? (
+                                                        <img src={addResult.avatar} className="w-full h-full object-cover" alt="" />
+                                                    ) : (
+                                                        <ChatFallbackAvatar />
+                                                    )}
+                                                </div>
+                                                <div className="menu-label-group">
+                                                    <div className="ts-18 font-bold text-[var(--c-text-title)] mb-1">{addResult.name || "UNNAMED"}</div>
+                                                    <div className="menu-desc">微信号: {addResult.wechatID || "N/A"}</div>
+                                                    <div className="menu-desc">个性签名: {addResult.persona ? addResult.persona.slice(0, 30) + (addResult.persona.length > 30 ? "..." : "") : "暂无"}</div>
+                                                </div>
+                                            </div>
                                         </div>
+                                        <button onClick={() => setIsSendingAdd(true)} className="ui-btn ui-btn-success w-full">添加到通讯录</button>
                                     </div>
-                                </div>
-                                <button onClick={() => setIsSendingAdd(true)} className="ui-btn ui-btn-success w-full">添加到通讯录</button>
-                            </div>
-                        )}
-                        {isSendingAdd && addResult && (
-                            <div className="page-menu">
-                                <p className="menu-group-desc mx-0">发送添加朋友申请</p>
-                                <div className="menu-group">
-                                    <div className="menu-item !items-start">
-                                        <textarea
-                                            autoFocus
-                                            value={greetingText}
-                                            onChange={e => setGreetingText(e.target.value)}
-                                            placeholder="输入打招呼信息..."
-                                            className="ui-textarea ui-input-inline min-h-[60px]"
-                                        />
-                                        <button onClick={() => setGreetingText("")} className="ui-bare-btn text-[var(--c-icon)]">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <button
-                                        onClick={() => {
-                                            addChatContact(addResult.id);
-                                            clearRequestsForCharacter(addResult.id);
-                                            dispatchFriendRequestUpdated();
-                                            const newSession = createOrGetSession(addResult.id);
-                                            const isReAdd = loadChatMessages(newSession.id).length > 0;
-                                            const charIdentity = resolveUserIdentity(addResult.id, "chat");
-                                            const userName = charIdentity?.name || identity?.name || "你";
-                                            if (isReAdd) {
-                                                const charName = addResult.name || "用户";
-                                                pushChatMessage({ sessionId: newSession.id, role: "system", content: `${userName}向${charName}发起了好友申请\n${charName}通过了好友申请`, status: "sent" });
-                                                kvSet(PENDING_REPLY_PREFIX + newSession.id, "1");
-                                            } else {
-                                                pushChatMessage({ sessionId: newSession.id, role: "system", content: `${userName}已添加了${addResult.name || "用户"}，现在可以开始聊天了。`, status: "sent" });
-                                            }
-                                            if (greetingText.trim()) {
-                                                pushChatMessage({ sessionId: newSession.id, role: "user", content: greetingText.trim()); }
-                    refresh();
-                    onSelectSession(newSession);
-                    addFromCardRef.current = false;
-                    setIsAddFriendOpen(false);
-                }}
-                className="ui-btn ui-btn-success w-full"
-            >发送</button>
-            <button onClick={() => setIsSendingAdd(false)} className="ui-btn ui-btn-ghost w-full">取消</button>
-        </div>
-    </div>
-    )}
-</div>
-</div>
-</div>
-)}
-</div>
-);
-            }
+                                )}
+                                {isSendingAdd && addResult && (
+                                    <div className="page-menu">
+                                        <p className="menu-group-desc mx-0">发送添加朋友申请</p>
+                                        <div className="menu-group">
+                                            <div className="menu-item !items-start">
+                                                <textarea
+                                                    autoFocus
+                                                    value={greetingText}
+                                                    onChange={e => setGreetingText(e.target.value)}
+                                                    placeholder="输入打招呼信息..."
+                                                    className="ui-textarea ui-input-inline min-h-[60px]"
+                                                />
+                                                <button onClick={() => setGreetingText("")} className="ui-bare-btn text-[var(--c-icon)]">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    addChatContact(addResult.id);
+                                                    clearRequestsForCharacter(addResult.id);
+                                                    dispatchFriendRequestUpdated();
+                                                    const newSession = createOrGetSession(addResult.id);
+                                                    const isReAdd = loadChatMessages(newSession.id).length > 0;
+                                                    const charIdentity = resolveUserIdentity(addResult.id, "chat");
+                                                    const userName = charIdentity?.name || identity?.name || "你";
+                                                    if (isReAdd) {
+                                                        const charName = addResult.name || "用户";
+                                                        pushChatMessage({ sessionId: newSession.id, role: "system", content: `${userName}向${charName}发起了好友申请\n${charName}通过了好友申请`, status: "sent" });
+                                                        kvSet(PENDING_REPLY_PREFIX + newSession.id, "1");
+                                                    } else {
+                                                        pushChatMessage({ sessionId: newSession.id, role: "system", content: `${userName}已添加了${addResult.name || "用户"}，现在可以开始聊天了。`, status: "sent" });
+                                                    }
+       
