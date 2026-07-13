@@ -752,6 +752,57 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
           onClick={preview ? undefined : triggerUpload}
         >
+// ----------------------------------------------------
+//   My Space Personal Profile Widget (New "Yuli" Style)
+// ----------------------------------------------------
+function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
+  const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
+  const username = typeof config?.username === "string" ? config.username : "Yuli";
+  const signature = typeof config?.signature === "string" ? config.signature : "";
+  
+  const { triggerUpload, input } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
+  
+  // 名字和签名的编辑状态
+  const [showNameEdit, setShowNameEdit] = useState(false);
+  const [editName, setEditName] = useState(username);
+  const [showSigEdit, setShowSigEdit] = useState(false);
+  const [editSig, setEditSig] = useState(signature);
+
+  function handleNameClick(e: React.MouseEvent) {
+    if (preview) return;
+    e.stopPropagation();
+    setEditName(username);
+    setShowNameEdit(true);
+  }
+
+  function handleSigClick(e: React.MouseEvent) {
+    if (preview) return;
+    e.stopPropagation();
+    setEditSig(signature);
+    setShowSigEdit(true);
+  }
+
+  function handleSaveName() {
+    onConfigChange?.(widgetId, { ...config, username: editName.trim() || "Yuli" });
+    setShowNameEdit(false);
+  }
+
+  function handleSaveSig() {
+    onConfigChange?.(widgetId, { ...config, signature: editSig.trim() });
+    setShowSigEdit(false);
+  }
+
+  return (
+    <>
+      {input}
+      {/* 外部白色毛玻璃卡片 */}
+      <div className="relative w-full h-full bg-white/80 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-xl flex flex-col items-center pt-16 pb-8 px-4 box-border overflow-visible">
+        
+        {/* 探出半个的圆形头像 */}
+        <div 
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
+          onClick={preview ? undefined : triggerUpload}
+        >
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -821,8 +872,7 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
       )}
     </>
   );
-        }
-
+          }
 // ----------------------------------------------------
 //   Social Post Widget (New Clean White Style)
 // ----------------------------------------------------
