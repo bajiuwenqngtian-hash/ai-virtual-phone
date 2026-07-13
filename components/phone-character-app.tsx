@@ -875,10 +875,9 @@ function CharListView({
             All field agents must maintain high alert.
             {hash % 4 === 0 && <div className="char-marker-circle" />}
           </div>
-          {hash % 2 === 0 && <div className="char-stamp-red" style={{ top: 
-        {hash % 2 === 0 && <div className="char-stamp-red" style={{ top: 120, right: 10 }}>RESTRICTED</div>}
-        {hash % 3 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 20, right: 10 }}>* Verify ASAP *</div>}
-      </>
+          {hash % 2 === 0 && <div className="char-stamp-red" style={{ top: 120, right: 10 }}>RESTRICTED</div>}
+          {hash % 3 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 20, right: 10 }}>* Verify ASAP *</div>}
+        </>
       );
     } else if (item.type === 'yellow-note') {
       baseClass = "char-sticky-note";
