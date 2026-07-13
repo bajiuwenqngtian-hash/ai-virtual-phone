@@ -54,6 +54,8 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
     const [listTab, setListTab] = useState<"all" | "private" | "group">("all");
     const [showPlusMenu, setShowPlusMenu] = useState(false);
     const plusMenuRef = React.useRef<HTMLSpanElement>(null);
+    const [isSearchActive, setIsSearchActive] = useState(false);
+
     useEffect(() => {
         if (!showPlusMenu) return;
         const handler = (e: PointerEvent) => {
@@ -64,10 +66,10 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
         document.addEventListener("pointerdown", handler);
         return () => document.removeEventListener("pointerdown", handler);
     }, [showPlusMenu]);
+
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResult, setSearchResult] = useState<Character | null | undefined>(undefined);
-    // undefined: not searched yet, null: searched and not found, Character: found
 
     const [isSendingRequest, setIsSendingRequest] = useState(false);
     const [greetingText, setGreetingText] = useState("");
@@ -113,46 +115,26 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
     }, []);
 
     return (
-        <div className="relative flex-1 h-full">
-            <PageShell
-                leftAction={
-                    <div className="flex items-center min-w-max">
-                        <button className="page-back-btn shrink-0 mr-2" type="button" onClick={onCloseApp} aria-label="返回">
-                            <ChevronLeft size={24} strokeWidth={1.5} />
-                        </button>
-                        <div className="flex items-center gap-[10px]">
-                            <div className="w-[36px] h-[36px] rounded-full overflow-hidden bg-[var(--c-input)] flex items-center justify-center shrink-0">
-                                {identity?.avatarUrl ? (
-                                    <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <ChatFallbackAvatar />
-                                )}
-                            </div>
-                            <div className="flex flex-col whitespace-nowrap">
-                                <span className="ts-16 font-bold text-[var(--c-text-title)] leading-tight">{identity?.name || "用户"}</span>
-                                <div className="flex items-center gap-1 mt-1">
-                                    <span className="w-[8px] h-[8px] rounded-full bg-[#2dd36f]"></span>
-                                    <span className="ts-10 text-[var(--c-icon)] font-medium">在线</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                rightAction={
+        <div className="relative flex-1 h-full bg-[#FFFFFF]">
+            
+            {/* --- 新换上的微信风格顶部栏 --- */}
+            <div className="absolute top-0 left-0 right-0 h-[70px] z-30 bg-[#EDEDED] flex items-center justify-between border-b border-[#E5E5E5] px-4 pt-[max(env(safe-area-inset-top,12px),12px)]">
+                <div className="w-8 h-8 cursor-pointer" onClick={onCloseApp}></div>
+                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
+                <div className="flex items-center gap-1 relative">
+                    <button onClick={() => { setIsSearchActive(!isSearchActive); setShowPlusMenu(false); }} className="w-10 h-10 flex items-center justify-center text-[#181818]">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </button>
                     <span className="relative" ref={plusMenuRef}>
-                        <button
-                            onClick={() => setShowPlusMenu(!showPlusMenu)}
-                            className="page-back-btn"
-                            type="button"
-                        >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v8M8 12h8" /></svg>
+                        <button onClick={() => setShowPlusMenu(!showPlusMenu)} className="w-10 h-10 flex items-center justify-center text-[#181818]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                         </button>
-
-                        {/* Dropout '+' Menu */}
+                        
+                        {/* 保留原始逻辑的下拉悬浮窗 */}
                         {showPlusMenu && (
-                            <div className="g-dropdown absolute top-[40px] right-0 py-2 px-0 w-[140px] z-[100]">
+                            <div className="absolute top-[calc(100%+8px)] right-0 bg-[#4C4C4C] rounded-md shadow-lg py-1 w-[140px] z-50">
                                 <MenuOption
-                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>}
+                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>}
                                     label="发起聊天"
                                     onClick={() => {
                                         setShowPlusMenu(false);
@@ -160,7 +142,7 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                                     }}
                                 />
                                 <MenuOption
-                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
+                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
                                     label="创建群聊"
                                     onClick={() => {
                                         setShowPlusMenu(false);
@@ -168,14 +150,13 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                                     }}
                                 />
                                 <MenuOption
-                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>}
+                                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>}
                                     label="添加好友"
                                     onClick={() => {
                                         setShowPlusMenu(false);
                                         setIsSearchModalOpen(true);
                                         setSearchQuery("");
                                         setSearchResult(undefined);
-
                                         setIsSendingRequest(false);
                                         setGreetingText(identity?.name ? `我是${identity.name}` : "你好");
                                     }}
@@ -183,34 +164,28 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                             </div>
                         )}
                     </span>
-                }
-            >
-                <div className="px-5 pt-5 pb-3">
-                    <div className="flex items-center justify-between mb-4 mt-2">
-                        <span className="ts-28 font-bold text-[var(--c-text-title)]">Chats</span>
-                    </div>
-                    <div className="chat-search-bar">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-icon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input
-                            className="chat-search-input ts-15 w-full bg-transparent outline-none text-[var(--c-text-title)] placeholder:text-[var(--c-icon)]"
-                            placeholder="Search chats..."
+                </div>
+            </div>
+
+            {/* 点击放大镜出现的搜索下拉框 */}
+            {isSearchActive && (
+                <div className="absolute top-[70px] left-0 right-0 z-20 px-4 py-3 bg-[#EDEDED] border-b border-[#E5E5E5] flex items-center gap-3">
+                    <div className="flex-1 bg-[#FFFFFF] rounded-md px-3 py-1.5 flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input 
+                            autoFocus 
+                            placeholder="搜索" 
+                            className="w-full bg-transparent outline-none text-[#000] placeholder-[#999] text-[15px]" 
                             value={listFilter}
                             onChange={(e) => setListFilter(e.target.value)}
                         />
                     </div>
+                    <button onClick={() => { setIsSearchActive(false); setListFilter(""); }} className="text-[#576B95] text-[15px]">取消</button>
                 </div>
-                <div className="chat-list-tabs" style={{ paddingLeft: 20, paddingRight: 20 }}>
-                    {(["all", "private", "group"] as const).map(tab => (
-                        <button
-                            key={tab}
-                            type="button"
-                            className={`chat-list-tab${listTab === tab ? " active" : ""}`}
-                            onClick={() => setListTab(tab)}
-                        >
-                            {{ all: "All", private: "Private", group: "Groups" }[tab]}
-                        </button>
-                    ))}
-                </div>
+            )}
+
+            {/* --- 主体消息列表 --- */}
+            <div className="flex-1 overflow-y-auto h-full pt-[70px] bg-white">
                 <div className="px-5 pt-2 flex flex-col">
                     {(() => {
                             const contactIds = new Set(loadChatContacts().map(c => c.characterId));
@@ -265,7 +240,7 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                             );
                         })()}
                 </div>
-            </PageShell>
+            </div>
 
             {/* Add Friend Search Modal */}
             {isSearchModalOpen && (
@@ -546,4 +521,156 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
     );
 }
 
-function MenuOption({ icon, la
+function MenuOption({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick?: () => void }) {
+    return (
+        <div
+            onClick={onClick}
+            className="flex items-center gap-3 px-4 py-3 border-b border-[#5B5B5B] last:border-0 hover:bg-[#3d3d3d] transition-colors cursor-pointer text-[#fff]"
+        >
+            <span className="flex items-center text-[#fff]">{icon}</span>
+            <span className="text-[15px]">{label}</span>
+        </div>
+    );
+}
+
+function MascotSessionItem({
+    name,
+    avatarUrl,
+    preview,
+    isThinking,
+    onSelect,
+}: {
+    name: string;
+    avatarUrl: string;
+    preview: string;
+    isThinking: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <div className="minimal-list-item" onClick={onSelect}>
+            <div className="minimal-avatar-wrapper bg-white">
+                <img src={avatarUrl} className="w-full h-full object-contain pointer-events-none rounded-full p-[2px]" alt="" />
+                <span className="minimal-online-dot" />
+            </div>
+            <div className="flex-1 overflow-hidden h-[48px] flex flex-col justify-center gap-1 border-b border-[#F5F5F5]">
+                <div className="flex justify-between items-center">
+                    <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">{name}</span>
+                    <span className="ts-12 text-[#B2B2B2] font-medium">AI</span>
+                </div>
+                <div className="flex justify-between items-center gap-2">
+                    <span className="ts-13 text-[#999] truncate font-normal">
+                        {isThinking ? "正在思考..." : preview}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ContactPicker({ onClose, onSelect }: { onClose: () => void; onSelect: (charId: string) => void }) {
+    const contacts = loadChatContacts();
+    const chars = loadCharacters();
+
+    const enrichedContacts = contacts
+        .map(c => ({ ...c, char: chars.find(ch => ch.id === c.characterId) }))
+        .filter(c => c.char) as (typeof contacts[number] & { char: Character })[];
+
+    return (
+        <div className="modal-overlay z-[9999]" onClick={onClose}>
+            <div className="modal-dialog bg-white shadow-xl max-w-sm w-[90%]" onClick={e => e.stopPropagation()}>
+                <span className="block text-center font-bold text-[17px] mb-4 text-black border-b border-gray-100 pb-3">选择联系人</span>
+                {enrichedContacts.length === 0 ? (
+                    <span className="block text-center text-gray-400 py-6 text-sm">暂无联系人，请先添加好友</span>
+                ) : (
+                    <div className="max-h-[300px] overflow-y-auto">
+                        {enrichedContacts.map(c => (
+                            <div
+                                key={c.characterId}
+                                className="flex items-center gap-3 px-2 py-3 hover:bg-gray-50 active:bg-gray-100 cursor-pointer rounded-lg transition-colors"
+                                onClick={() => onSelect(c.characterId)}
+                            >
+                                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                                    {c.char.avatar ? (
+                                        <img src={c.char.avatar} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <ChatFallbackAvatar />
+                                    )}
+                                </div>
+                                <span className="text-[16px] text-gray-900 font-medium truncate">{c.char.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function SessionItem({ session, onSelect, isPinned }: { session: ChatSession, onSelect: () => void, isPinned?: boolean }) {
+    const chars = loadCharacters();
+    const character = chars.find(c => c.id === session.contactId);
+    const lastVisibleMessage = getLastVisibleSessionMessage(session.id);
+    const preview = lastVisibleMessage ? (getChatMessagePreview(lastVisibleMessage) || lastVisibleMessage.content) : "";
+    const displayTime = lastVisibleMessage?.createdAt || session.updatedAt;
+
+    // Group chat: build grid of participant avatars (2×2)
+    const isGroup = session.isGroup;
+    const userIdentity = isGroup ? resolveUserIdentity(undefined, "group_chat") : null;
+    const groupAvatarItems = isGroup
+        ? [
+            ...(userIdentity ? [{ id: "self", name: userIdentity.name || "我", avatar: userIdentity.avatarUrl || "" }] : []),
+            ...((session.participantIds || [])
+                .map(id => chars.find(c => c.id === id))
+                .filter(Boolean) as Character[])
+                .map(c => ({ id: c.id, name: c.name, avatar: c.avatar || "" })),
+        ].slice(0, 4)
+        : [];
+
+    return (
+        <div
+            className={`minimal-list-item${isPinned ? ' chat-pinned' : ''}`}
+            onClick={onSelect}
+        >
+            {isGroup ? (
+                <div className="minimal-avatar-wrapper grid grid-cols-2 grid-rows-2 gap-[1px] p-[2px] bg-[var(--c-card-border)] rounded-md overflow-hidden">
+                    {groupAvatarItems.map((c) => (
+                        <div key={c.id} className="overflow-hidden rounded-[2px] bg-[var(--c-page-body-bg)]">
+                            {c.avatar ? (
+                                <img src={c.avatar} className="w-full h-full object-cover pointer-events-none" alt="" />
+                            ) : (
+                                <ChatFallbackAvatar className="pointer-events-none" />
+                            )}
+                        </div>
+                    ))}
+                    {Array.from({ length: Math.max(0, 4 - groupAvatarItems.length) }).map((_, i) => (
+                        <div key={`empty-${i}`} className="overflow-hidden rounded-[2px] bg-[var(--c-page-body-bg)]" />
+                    ))}
+                </div>
+            ) : (
+                <div className="minimal-avatar-wrapper">
+                    {character?.avatar ? (
+                        <img src={character.avatar} className="w-full h-full object-cover pointer-events-none rounded-md" alt="" />
+                    ) : (
+                        <ChatFallbackAvatar className="pointer-events-none rounded-md" />
+                    )}
+                    <span className="minimal-online-dot" />
+                </div>
+            )}
+            <div className="flex-1 overflow-hidden h-[48px] flex flex-col justify-center gap-1 border-b border-[#F5F5F5]">
+                <div className="flex justify-between items-center">
+                    <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">
+                        {isGroup ? (session.groupName || "群聊") : (session.alias || character?.name || `User_${session.contactId.slice(-4)}`)}
+                    </span>
+                    <span className="ts-12 text-[#B2B2B2] font-normal">
+                        {formatChatUiTime(displayTime)}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center gap-2">
+                    <span className="ts-13 text-[#999] truncate font-normal">
+                        {preview || getLastNonEmptyPreview(session.id)}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
