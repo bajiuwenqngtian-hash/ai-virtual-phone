@@ -562,25 +562,126 @@ function FreestyleFrame90Widget({ config, widgetId, onConfigChange, preview }: a
 }
 
 // ----------------------------------------------------
-//   My Space Personal Profile Widget (2×2)
+//   My Space Personal Profile Widget (New "Yuli" Style)
 // ----------------------------------------------------
-
 function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
   const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
-  const username = typeof config?.username === "string" ? config.username : "OLD ORANGE";
+  const username = typeof config?.username === "string" ? config.username : "Yuli";
+  const signature = typeof config?.signature === "string" ? config.signature : "";
   
   const { triggerUpload, input } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
   
-  const [showEdit, setShowEdit] = useState(false);
-  const [editText, setEditText] = useState(username);
+  // 名字和签名的编辑状态
+  const [showNameEdit, setShowNameEdit] = useState(false);
+  const [editName, setEditName] = useState(username);
+  const [showSigEdit, setShowSigEdit] = useState(false);
+  const [editSig, setEditSig] = useState(signature);
 
   function handleNameClick(e: React.MouseEvent) {
     if (preview) return;
     e.stopPropagation();
-    setEditText(username);
-    setShowEdit(true);
+    setEditName(username);
+    setShowNameEdit(true);
   }
 
+  function handleSigClick(e: React.MouseEvent) {
+    if (preview) return;
+    e.stopPropagation();
+    setEditSig(signature);
+    setShowSigEdit(true);
+  }
+
+  function handleSaveName() {
+    onConfigChange?.(widgetId, { ...config, username: editName.trim() || "Yuli" });
+    setShowNameEdit(false);
+  }
+
+  function handleSaveSig() {
+    onConfigChange?.(widgetId, { ...config, signature: editSig.trim() });
+    setShowSigEdit(false);
+  }
+
+  return (
+    <>
+      {input}
+      {/* 外部白色毛玻璃卡片 */}
+      <div className="relative w-full h-full bg-white/80 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-xl flex flex-col items-center pt-16 pb-8 px-4 box-border overflow-visible">
+        
+        {/* 探出半个的圆形头像 */}
+        <div 
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
+          onClick={preview ? undefined : triggerUpload}
+        >
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-400 text-xs">点击换图</span>
+          )}
+        </div>
+
+        {/* 可编辑的名字 */}
+        <div 
+          className="text-[22px] font-medium text-[#5b6e82] tracking-wide cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleNameClick}
+        >
+          {username}
+        </div>
+
+        {/* 可编辑的个性签名 */}
+        <div 
+          className="mt-2 text-[14px] text-gray-500 font-light text-center cursor-pointer hover:opacity-80 transition-opacity min-h-[1.5em]"
+          onClick={handleSigClick}
+        >
+          {signature || <span className="text-gray-400 text-xs">点我编辑个性签名...</span>}
+        </div>
+
+        {/* 底部唯美标签 */}
+        <div className="mt-6 text-[13px] text-[#6b8cae] tracking-wide flex items-center gap-1">
+          🩷 aegoromantic 🩷
+        </div>
+
+      </div>
+
+      {/* 名字编辑弹窗 */}
+      {showNameEdit && !preview && createPortal(
+        <ContentDialog
+          title="编辑名字"
+          onConfirm={handleSaveName}
+          onCancel={() => setShowNameEdit(false)}
+        >
+          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入你的名字</label>
+          <input
+            className="ui-input"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="Yuli"
+            style={{ width: "100%" }}
+          />
+        </ContentDialog>,
+        document.querySelector(".phone-shell") ?? document.body
+      )}
+
+      {/* 签名编辑弹窗 */}
+      {showSigEdit && !preview && createPortal(
+        <ContentDialog
+          title="编辑个性签名"
+          onConfirm={handleSaveSig}
+          onCancel={() => setShowSigEdit(false)}
+        >
+          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>写一句你的心情</label>
+          <input
+            className="ui-input"
+            value={editSig}
+            onChange={(e) => setEditSig(e.target.value)}
+            placeholder="let this moment be the first chapter "
+            style={{ width: "100%" }}
+          />
+        </ContentDialog>,
+        document.querySelector(".phone-shell") ?? document.body
+      )}
+    </>
+  );
+}
   function handleSave() {
     onConfigChange?.(widgetId, { ...config, username: editText.trim() || "OLD ORANGE" });
     setShowEdit(false);
@@ -652,96 +753,172 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
   );
 }
 
-// ----------------------------------------------------
-//   Social Post Widget (4×4)
-// ----------------------------------------------------
 
+// ----------------------------------------------------
+//   Social Post Widget (New Clean White Style)
+// ----------------------------------------------------
 function SocialPostWidget({ config, widgetId, onConfigChange, preview }: any) {
+  // 基础数据
   const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
   const postImageUrl = typeof config?.postImageUrl === "string" ? config.postImageUrl : undefined;
   const username = typeof config?.username === "string" ? config.username : "YOUR NAME";
   
+  // 新增状态：动态文案、点赞状态、三个数字
+  const [postContent, setPostContent] = useState(typeof config?.postContent === "string" ? config.postContent : "");
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(typeof config?.likeCount === "string" ? config.likeCount : "100");
+  const [commentCount, setCommentCount] = useState(typeof config?.commentCount === "string" ? config.commentCount : "100");
+  const [shareCount, setShareCount] = useState(typeof config?.shareCount === "string" ? config.shareCount : "100");
+
+  // 头像和图片上传
   const { triggerUpload: triggerAvatar, input: avatarInput } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
   const { triggerUpload: triggerPost, input: postInput } = useImageUpload(widgetId, "postImageUrl", onConfigChange);
   
-  const [showEdit, setShowEdit] = useState(false);
-  const [editText, setEditText] = useState(username);
+  // 编辑弹窗状态
+  const [showEditName, setShowEditName] = useState(false);
+  const [editNameText, setEditNameText] = useState(username);
+  
+  const [showEditContent, setShowEditContent] = useState(false);
+  const [editContentText, setEditContentText] = useState(postContent);
+  
+  const [showEditLike, setShowEditLike] = useState(false);
+  const [editLikeText, setEditLikeText] = useState(likeCount);
+  const [showEditComment, setShowEditComment] = useState(false);
+  const [editCommentText, setEditCommentText] = useState(commentCount);
+  const [showEditShare, setShowEditShare] = useState(false);
+  const [editShareText, setEditShareText] = useState(shareCount);
 
-  function handleNameClick(e: React.MouseEvent) {
-    if (preview) return;
-    e.stopPropagation();
-    setEditText(username);
-    setShowEdit(true);
-  }
-
-  function handleSave() {
-    onConfigChange?.(widgetId, { ...config, username: editText.trim() || "YOUR NAME" });
-    setShowEdit(false);
-  }
+  // 保存各项修改
+  const handleSaveName = () => {
+    onConfigChange?.(widgetId, { ...config, username: editNameText.trim() || "YOUR NAME" });
+    setShowEditName(false);
+  };
+  const handleSaveContent = () => {
+    onConfigChange?.(widgetId, { ...config, postContent: editContentText.trim() });
+    setPostContent(editContentText.trim());
+    setShowEditContent(false);
+  };
+  const handleSaveLike = () => {
+    onConfigChange?.(widgetId, { ...config, likeCount: editLikeText.trim() });
+    setLikeCount(editLikeText.trim());
+    setShowEditLike(false);
+  };
+  const handleSaveComment = () => {
+    onConfigChange?.(widgetId, { ...config, commentCount: editCommentText.trim() });
+    setCommentCount(editCommentText.trim());
+    setShowEditComment(false);
+  };
+  const handleSaveShare = () => {
+    onConfigChange?.(widgetId, { ...config, shareCount: editShareText.trim() });
+    setShareCount(editShareText.trim());
+    setShowEditShare(false);
+  };
 
   return (
-    <div className="wg-sp-card">
+    <div className="wg-sp-card w-full h-full bg-white/90 backdrop-blur-lg rounded-3xl border border-white/60 shadow-lg flex flex-col p-4 box-border overflow-hidden">
       {avatarInput}
       {postInput}
       
-      <div className="wg-sp-header">
-        <div className="wg-sp-avatar" onClick={preview ? undefined : triggerAvatar} role={preview ? undefined : "button"} tabIndex={preview ? undefined : 0}>
-          {avatarUrl ? <img src={avatarUrl} alt=""/> : <div className="wg-sp-avatar-mock"><span className="wg-upload-hint" style={{fontSize: "calc(8px*var(--app-text-scale,1))"}}>换图</span></div>}
+      {/* 1. 顶部信息区：头像+名字 + 三点菜单 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border border-gray-300 cursor-pointer"
+            onClick={preview ? undefined : triggerAvatar}
+          >
+            {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover"/> : <span className="text-xs text-gray-400">换图</span>}
+          </div>
+          <div>
+            <div 
+              className="font-semibold text-sm text-gray-800 cursor-pointer hover:underline"
+              onClick={(e) => { if(!preview){ e.stopPropagation(); setEditNameText(username); setShowEditName(true);} }}
+            >
+              {username}
+            </div>
+            <div className="text-xs text-gray-400">HI THIS IS MY SPACE</div>
+          </div>
         </div>
-        <div className="wg-sp-user-info" onClick={handleNameClick} role={preview ? undefined : "button"} tabIndex={preview ? undefined : 0}>
-          <div className="wg-sp-username">{username}</div>
-          <div className="wg-sp-subtitle">Hi THIS IS MY SPACE</div>
-        </div>
-        <div className="wg-sp-more">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-home-sub)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-            <circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/>
+        <div className="text-gray-800">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
           </svg>
         </div>
       </div>
       
-      <div className="wg-sp-post-image" onClick={preview ? undefined : triggerPost} role={preview ? undefined : "button"} tabIndex={preview ? undefined : 0}>
-        {postImageUrl ? <img src={postImageUrl} alt=""/> : <div className="wg-sp-post-mock"><span className="wg-upload-hint">点击换图</span></div>}
+      {/* 2. 中间大图区 */}
+      <div 
+        className="flex-1 w-full bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden mb-3 relative cursor-pointer"
+        onClick={preview ? undefined : triggerPost}
+      >
+        {postImageUrl ? (
+          <img src={postImageUrl} alt="" className="w-full h-full object-cover"/>
+        ) : (
+          <div className="text-gray-400 text-sm absolute inset-0 flex items-center justify-center">点击换图</div>
+        )}
       </div>
       
-      <div className="wg-sp-likes">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-home-pink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <span>999+</span>
+      {/* 3. 动态文案区 (可点击编辑) */}
+      <div 
+        className="w-full p-2 text-gray-800 text-sm leading-relaxed cursor-pointer hover:bg-gray-50 rounded transition-colors mb-1"
+        onClick={(e) => { if(!preview){ e.stopPropagation(); setEditContentText(postContent); setShowEditContent(true);} }}
+      >
+        {postContent ? postContent : <span className="text-gray-400 text-xs">点击编辑我的动态文案...</span>}
       </div>
-      
-      <div className="wg-sp-actions">
-        <div className="wg-sp-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-          100
+
+      {/* 4. 底部三个按钮交互区 */}
+      <div className="flex items-center justify-start gap-6 mt-2 pt-2 border-t border-gray-100">
+        
+        {/* 点赞 (点击变红，不自动加数) */}
+        <div className="flex items-center gap-1 cursor-pointer select-none" onClick={() => setIsLiked(!isLiked)}>
+          <svg viewBox="0 0 24 24" width="20" height="20" className={isLiked ? "fill-red-500 text-red-500" : "fill-none text-gray-500"} stroke="currentColor" strokeWidth="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span 
+            className={`text-sm ${isLiked ? "text-red-500" : "text-gray-500"}`}
+            onClick={(e) => { e.stopPropagation(); setEditLikeText(likeCount); setShowEditLike(true); }}
+          >
+            {likeCount}
+          </span>
         </div>
-        <div className="wg-sp-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-          100
+
+        {/* 评论 */}
+        <div className="flex items-center gap-1 cursor-pointer select-none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" className="text-gray-500">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          <span 
+            className="text-sm text-gray-500"
+            onClick={(e) => { e.stopPropagation(); setEditCommentText(commentCount); setShowEditComment(true); }}
+          >
+            {commentCount}
+          </span>
         </div>
-        <div className="wg-sp-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
-          100
+
+        {/* 分享 */}
+        <div className="flex items-center gap-1 cursor-pointer select-none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" className="text-gray-500">
+            <polyline points="15 14 20 9 15 4"/>
+            <path d="M4 20v-7a4 4 0 0 1 4-4h12"/>
+          </svg>
+          <span 
+            className="text-sm text-gray-500"
+            onClick={(e) => { e.stopPropagation(); setEditShareText(shareCount); setShowEditShare(true); }}
+          >
+            {shareCount}
+          </span>
         </div>
       </div>
 
-      {showEdit && !preview && createPortal(
-        <ContentDialog
-          title="修改发帖人昵称"
-          onConfirm={handleSave}
-          onCancel={() => setShowEdit(false)}
-        >
-          <label style={{ fontSize: "calc(13px*var(--app-text-scale,1))", color: "var(--c-text)", marginBottom: 4, display: "block" }}>输入新昵称</label>
-          <input
-            className="ui-input"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            placeholder="YOUR NAME"
-            style={{ width: "100%" }}
-          />
-        </ContentDialog>,
-        document.querySelector(".phone-shell") ?? document.body
-      )}
+      {/* 所有的编辑弹窗（名字、文案、三个数字） */}
+      {showEditName && createPortal(<ContentDialog title="修改发帖人昵称" onConfirm={handleSaveName} onCancel={() => setShowEditName(false)}><label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入新昵称</label><input className="ui-input" value={editNameText} onChange={(e) => setEditNameText(e.target.value)} placeholder="YOUR NAME" style={{ width: "100%" }} /></ContentDialog>, document.querySelector(".phone-shell") ?? document.body)}
+      
+      {showEditContent && createPortal(<ContentDialog title="编辑动态文案" onConfirm={handleSaveContent} onCancel={() => setShowEditContent(false)}><label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入动态内容</label><textarea className="ui-input" value={editContentText} onChange={(e) => setEditContentText(e.target.value)} placeholder="此刻的想法..." style={{ width: "100%", minHeight: "80px" }} /></ContentDialog>, document.querySelector(".phone-shell") ?? document.body)}
+      
+      {showEditLike && createPortal(<ContentDialog title="编辑点赞数" onConfirm={handleSaveLike} onCancel={() => setShowEditLike(false)}><label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入数字</label><input className="ui-input" value={editLikeText} onChange={(e) => setEditLikeText(e.target.value)} placeholder="100" style={{ width: "100%" }} /></ContentDialog>, document.querySelector(".phone-shell") ?? document.body)}
+      
+      {showEditComment && createPortal(<ContentDialog title="编辑评论数" onConfirm={handleSaveComment} onCancel={() => setShowEditComment(false)}><label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入数字</label><input className="ui-input" value={editCommentText} onChange={(e) => setEditCommentText(e.target.value)} placeholder="100" style={{ width: "100%" }} /></ContentDialog>, document.querySelector(".phone-shell") ?? document.body)}
+      
+      {showEditShare && createPortal(<ContentDialog title="编辑分享数" onConfirm={handleSaveShare} onCancel={() => setShowEditShare(false)}><label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入数字</label><input className="ui-input" value={editShareText} onChange={(e) => setEditShareText(e.target.value)} placeholder="100" style={{ width: "100%" }} /></ContentDialog>, document.querySelector(".phone-shell") ?? document.body)}
     </div>
   );
 }
