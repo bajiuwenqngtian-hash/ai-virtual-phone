@@ -364,20 +364,20 @@ export function MomentsFeed({ onCloseApp }: MomentsFeedProps) {
     return (
         <>
         <PageShell
-            title="动态"
+            title="朋友圈"
             onBack={onCloseApp}
             rightAction={
                 <button
                     onClick={() => setShowCompose(true)}
-                    className="page-back-btn"
+                    className="page-back-btn text-[#000]"
                     title="发布朋友圈"
                     type="button"
                     aria-label="发布朋友圈"
                 >
-                    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
-                        <rect x="2" y="6" width="20" height="14" rx="2" />
-                        <circle cx="12" cy="13" r="4" />
-                        <path d="M8 6l1-3h6l1 3" />
+                    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
                     </svg>
                 </button>
             }
@@ -442,23 +442,19 @@ export function MomentsFeed({ onCloseApp }: MomentsFeedProps) {
                 </div>
             ) : undefined}
         >
-                {/* Cover card + avatar wrapper */}
-                <div className="feed-cover-shell w-full relative mb-4">
+                {/* 微信风格 Cover + Avatar Area */}
+                <div className="relative w-full bg-white mb-8">
                     
-                    {/* Background Absolute Cover */}
+                    {/* Background Cover - 固定高度比例 */}
                     <div
                         onClick={() => coverInputRef.current?.click()}
-                        className="feed-cover-bg absolute inset-0 w-full h-full bg-[var(--c-input)] cursor-pointer z-0"
-                        style={{ 
-                            maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-                            WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)"
-                        }}
+                        className="w-full aspect-[4/3] bg-[#f0f0f0] cursor-pointer overflow-hidden"
                     >
                         {coverUrl && (
                             <img
                                 src={coverUrl}
                                 alt=""
-                                className="feed-cover-image w-full h-full object-cover"
+                                className="w-full h-full object-cover"
                             />
                         )}
                     </div>
@@ -470,63 +466,60 @@ export function MomentsFeed({ onCloseApp }: MomentsFeedProps) {
                         className="hidden"
                     />
 
-                    {/* Content Container (Layered above absolute bg) */}
-                    <div
-                        className="feed-profile relative w-full px-5 pb-5 pointer-events-none"
-                        style={{ paddingTop: "calc(var(--page-header-safe-top, 48px) + var(--page-header-content-height, 54px) + 160px)" }}
-                    >
-                        {/* Avatar */}
-                        <div className="feed-profile-avatar w-[72px] h-[72px] rounded-full border-[3px] border-[var(--c-page-body-bg)] bg-[var(--c-input)] overflow-hidden flex items-center justify-center translate-x-[2px] pointer-events-auto">
+                    {/* 头像和名字浮层 - 绝对定位骑在底部边界上 */}
+                    <div className="absolute right-4 bottom-[-24px] flex items-center justify-end gap-4 pointer-events-none z-10">
+                        {/* 名字 (带白色文字阴影以防背景太白看不清) */}
+                        <span className="text-[19px] font-bold text-white tracking-wide" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+                            {userIdentity?.name ?? "我"}
+                        </span>
+                        
+                        {/* 微信方圆头像 */}
+                        <div className="w-[72px] h-[72px] rounded-[12px] bg-[#f0f0f0] overflow-hidden flex items-center justify-center pointer-events-auto shrink-0 shadow-sm">
                             {userIdentity?.avatarUrl ? (
-                                <img src={userIdentity.avatarUrl} alt="" className="feed-profile-avatar-image w-full h-full object-cover" />
+                                <img src={userIdentity.avatarUrl} alt="" className="w-full h-full object-cover" />
                             ) : (
-                                <span className="feed-profile-avatar-fallback ts-24 text-[var(--c-icon)] font-bold">{(userIdentity?.name ?? "我")[0]}</span>
+                                <span className="ts-24 text-[var(--c-icon)] font-bold">{(userIdentity?.name ?? "我")[0]}</span>
                             )}
                         </div>
-                        
-                        {/* Name and Flex Data */}
-                        <div className="feed-profile-info flex flex-col gap-1 mt-3 ml-[6px] pointer-events-auto">
-                            <span className="feed-profile-name ts-20 font-bold text-[var(--c-text-title)]">{userIdentity?.name ?? "我"}</span>
-                            <div className="feed-profile-stats flex gap-4 ts-13 text-[var(--c-icon)] font-medium mt-[2px]">
-                                <span className="feed-profile-stat"><strong className="feed-profile-stat-value text-[var(--c-text-title)]">128</strong> 关注</span>
-                                <span className="feed-profile-stat"><strong className="feed-profile-stat-value text-[var(--c-text-title)]">12.4K</strong> 粉丝</span>
-                                <span className="feed-profile-stat"><strong className="feed-profile-stat-value text-[var(--c-text-title)]">8.2M</strong> 获赞与收藏</span>
-                            </div>
-                            
-                            {/* Signature */}
-                            <div className="feed-profile-signature mt-[2px] text-left text-[var(--c-text)]">
-                                {editingSignature ? (
-                                    <input
-                                        ref={sigInputRef}
-                                        defaultValue={signature}
-                                        autoFocus
-                                        className="feed-profile-signature-input bg-transparent outline-none ts-14 text-[var(--c-text)] w-full border-b border-[var(--c-action-blue)] pb-1"
-                                        onBlur={(e) => handleSignatureSubmit(e.target.value)}
-                                        onKeyDown={(e) => { if (e.key === "Enter") handleSignatureSubmit((e.target as HTMLInputElement).value); }}
-                                    />
-                                ) : (
-                                    <span className="feed-profile-signature-text cursor-pointer ts-14 opacity-90 leading-[1.6]" onClick={() => setEditingSignature(true)}>
-                                        {signature || "编写你的个性签名..."}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                    </div>
+                </div>
+                
+                {/* 个性签名 - 靠右 */}
+                <div className="flex justify-end pr-4 mb-6">
+                    <div className="text-[13px] text-[#888] max-w-[70%] text-right">
+                        {editingSignature ? (
+                            <input
+                                ref={sigInputRef}
+                                defaultValue={signature}
+                                autoFocus
+                                className="bg-transparent outline-none text-right w-full border-b border-[#07C160] pb-1 text-[#333]"
+                                onBlur={(e) => handleSignatureSubmit(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleSignatureSubmit((e.target as HTMLInputElement).value); }}
+                            />
+                        ) : (
+                            <span className="cursor-pointer break-words" onClick={() => setEditingSignature(true)}>
+                                {signature || "点击设置签名"}
+                            </span>
+                        )}
                     </div>
                 </div>
 
                 {/* Unread notifications banner */}
                 {unreadNotifs.length > 0 && (
-                    <button
-                        className="feed-notif-banner"
-                        onClick={() => setShowNotifModal(true)}
-                    >
-                        {unreadNotifs.length}条新评论/回复/点赞
-                    </button>
+                    <div className="flex justify-center mb-4">
+                        <button
+                            className="bg-[#333] text-white rounded-[4px] px-3 py-2 text-[14px] flex items-center gap-2 shadow-md"
+                            onClick={() => setShowNotifModal(true)}
+                        >
+                            <span>{unreadNotifs.length} 条新消息</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
                 )}
 
                 {/* Posts list */}
                 {posts.length === 0 ? (
-                    <div className="feed-empty-state py-10 text-center text-[var(--c-icon)] ts-14">
+                    <div className="py-10 text-center text-[#999] text-[14px]">
                         还没有动态，发一条吧
                     </div>
                 ) : (
@@ -542,20 +535,16 @@ export function MomentsFeed({ onCloseApp }: MomentsFeedProps) {
                     ))
                 )}
                 {hasMorePosts && (
-                    <div className="feed-load-more-row flex justify-center px-4 pt-3 pb-8">
+                    <div className="flex justify-center px-4 pt-3 pb-8">
                         <button
                             type="button"
-                            className="chat-sys-msg chat-load-more-button"
+                            className="text-[#576B95] text-[14px] px-4 py-2"
                             onClick={handleLoadMorePosts}
                         >
-                            <span>查看更多动态</span>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="18 15 12 9 6 15" />
-                            </svg>
+                            查看更多动态
                         </button>
                     </div>
                 )}
-
 
             {/* Delete confirm dialog */}
             {confirmDeleteId && (
@@ -603,3 +592,4 @@ export function MomentsFeed({ onCloseApp }: MomentsFeedProps) {
         </>
     );
 }
+
