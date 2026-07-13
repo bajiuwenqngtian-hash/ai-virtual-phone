@@ -701,58 +701,127 @@ function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
         </svg>
 
         <div className="wg-ms-title">*｡My Space｡*</div>
+// ----------------------------------------------------
+//   My Space Personal Profile Widget (New "Yuli" Style)
+// ----------------------------------------------------
+function MySpaceWidget({ config, widgetId, onConfigChange, preview }: any) {
+  const avatarUrl = typeof config?.avatarUrl === "string" ? config.avatarUrl : undefined;
+  const username = typeof config?.username === "string" ? config.username : "Yuli";
+  const signature = typeof config?.signature === "string" ? config.signature : "";
+  
+  const { triggerUpload, input } = useImageUpload(widgetId, "avatarUrl", onConfigChange);
+  
+  // 名字和签名的编辑状态
+  const [showNameEdit, setShowNameEdit] = useState(false);
+  const [editName, setEditName] = useState(username);
+  const [showSigEdit, setShowSigEdit] = useState(false);
+  const [editSig, setEditSig] = useState(signature);
 
-        <div className="wg-ms-top-right">
-          <svg viewBox="0 0 13.2 9.8" width="16" height="12" className="wg-ms-icon wg-ms-icon-mail">
-            <path fill="var(--c-home-text)" d="M1.2,0l10.7,0c0.6,0,1.1,0.5,1.2,1.1c0.1,2.5,0,4.9,0,7.4c0,0.7-0.6,1.2-1.3,1.3H1.3C0.6,9.7,0.1,9.2,0,8.5 l0-7.2C0.1,0.6,0.6,0.1,1.2,0z M10.8,1.2H2.4l0,0c1.4,1.2,2.8,2.3,4.2,3.5L10.8,1.2z M11.9,2L7,6.1c-0.2,0.1-0.5,0.2-0.7,0L1.3,2 v6.5c0,0,0,0,0.1,0.1l10.6,0c0,0,0.1,0,0.1,0V2z"/>
-          </svg>
-          <svg viewBox="0 0 14 10" width="16" height="12" className="wg-ms-icon wg-ms-icon-menu" fill="none" stroke="var(--c-home-text)" strokeWidth="1.8" strokeLinecap="round">
-            <path d="M1 1h12 M1 5h12 M1 9h12" />
-          </svg>
-        </div>
-      </div>
-      
-      <div className="wg-ms-center">
+  function handleNameClick(e: React.MouseEvent) {
+    if (preview) return;
+    e.stopPropagation();
+    setEditName(username);
+    setShowNameEdit(true);
+  }
+
+  function handleSigClick(e: React.MouseEvent) {
+    if (preview) return;
+    e.stopPropagation();
+    setEditSig(signature);
+    setShowSigEdit(true);
+  }
+
+  function handleSaveName() {
+    onConfigChange?.(widgetId, { ...config, username: editName.trim() || "Yuli" });
+    setShowNameEdit(false);
+  }
+
+  function handleSaveSig() {
+    onConfigChange?.(widgetId, { ...config, signature: editSig.trim() });
+    setShowSigEdit(false);
+  }
+
+  return (
+    <>
+      {input}
+      {/* 外部白色毛玻璃卡片 */}
+      <div className="relative w-full h-full bg-white/80 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-xl flex flex-col items-center pt-16 pb-8 px-4 box-border overflow-visible">
+        
+        {/* 探出半个的圆形头像 */}
         <div 
-           className="wg-ms-avatar" 
-           onClick={preview ? undefined : triggerUpload}
-           role={preview ? undefined : "button"}
-           tabIndex={preview ? undefined : 0}
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-[4px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center z-10 cursor-pointer"
+          onClick={preview ? undefined : triggerUpload}
         >
-          {avatarUrl ? <img src={avatarUrl} alt="" className="wg-ms-avatar-img"/> : <div className="wg-ms-avatar-mock"><span className="wg-upload-hint">点击换图</span></div>}
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-400 text-xs">点击换图</span>
+          )}
         </div>
-        <div className="wg-ms-name" onClick={handleNameClick} role={preview ? undefined : "button"} tabIndex={preview ? undefined : 0}>
-          @{username}
+
+        {/* 可编辑的名字 */}
+        <div 
+          className="text-[22px] font-medium text-[#5b6e82] tracking-wide cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleNameClick}
+        >
+          {username}
         </div>
+
+        {/* 可编辑的个性签名 */}
+        <div 
+          className="mt-2 text-[14px] text-gray-500 font-light text-center cursor-pointer hover:opacity-80 transition-opacity min-h-[1.5em]"
+          onClick={handleSigClick}
+        >
+          {signature || <span className="text-gray-400 text-xs">点我编辑个性签名...</span>}
+        </div>
+
+        {/* 底部唯美标签 */}
+        <div className="mt-6 text-[13px] text-[#6b8cae] tracking-wide flex items-center gap-1">
+          🩷 aegoromantic 🩷
+        </div>
+
       </div>
 
-      <div className="wg-ms-bottom">
-        <div className="wg-ms-stat"><span className="wg-ms-stat-num">23876</span><span className="wg-ms-stat-label">Following</span></div>
-        <div className="wg-ms-stat"><span className="wg-ms-stat-num">4598</span><span className="wg-ms-stat-label">Follower</span></div>
-        <div className="wg-ms-stat"><span className="wg-ms-stat-num">9999+</span><span className="wg-ms-stat-label">Like</span></div>
-      </div>
-
-      {showEdit && !preview && createPortal(
+      {/* 名字编辑弹窗 */}
+      {showNameEdit && !preview && createPortal(
         <ContentDialog
-          title="修改空间昵称"
-          onConfirm={handleSave}
-          onCancel={() => setShowEdit(false)}
+          title="编辑名字"
+          onConfirm={handleSaveName}
+          onCancel={() => setShowNameEdit(false)}
         >
-          <label style={{ fontSize: "calc(13px*var(--app-text-scale,1))", color: "var(--c-text)", marginBottom: 4, display: "block" }}>输入新昵称</label>
+          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>输入你的名字</label>
           <input
             className="ui-input"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            placeholder="OLD ORANGE"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="Yuli"
             style={{ width: "100%" }}
           />
         </ContentDialog>,
         document.querySelector(".phone-shell") ?? document.body
       )}
-    </div>
-  );
-}
 
+      {/* 签名编辑弹窗 */}
+      {showSigEdit && !preview && createPortal(
+        <ContentDialog
+          title="编辑个性签名"
+          onConfirm={handleSaveSig}
+          onCancel={() => setShowSigEdit(false)}
+        >
+          <label style={{ fontSize: "13px", color: "#333", marginBottom: 4, display: "block" }}>写一句你的心情</label>
+          <input
+            className="ui-input"
+            value={editSig}
+            onChange={(e) => setEditSig(e.target.value)}
+            placeholder="let this moment be the first chapter"
+            style={{ width: "100%" }}
+          />
+        </ContentDialog>,
+        document.querySelector(".phone-shell") ?? document.body
+      )}
+    </>
+  );
+        }
 
 // ----------------------------------------------------
 //   Social Post Widget (New Clean White Style)
