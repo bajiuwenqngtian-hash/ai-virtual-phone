@@ -33,6 +33,9 @@ export function WidgetRenderer({ widget, preview, onConfigChange }: WidgetRender
 
   const widgetName = catalogEntry?.name || "";
 
+  // 新增：判断是不是我们要干掉旧样式的组件
+  const hideOuterGlass = ["mySpace", "socialPost"].includes(widget.type);
+
   return (
     <div
       className={`widget-wrap ${sizeClass}-wrap`}
@@ -47,7 +50,7 @@ export function WidgetRenderer({ widget, preview, onConfigChange }: WidgetRender
       }
     >
       <div
-        className={`widget-glass ${sizeClass}${preview ? " widget-preview-mode" : ""}${isKawaii ? " widget-kawaii" : ""}${isFullBleed ? " widget-full-bleed" : ""}${isFreestyle ? " widget-freestyle" : ""}`}
+        className={`${hideOuterGlass ? "" : "widget-glass"} ${sizeClass}${preview ? " widget-preview-mode" : ""}${isKawaii ? " widget-kawaii" : ""}${isFullBleed ? " widget-full-bleed" : ""}${isFreestyle ? " widget-freestyle" : ""}`}
         data-widget-type={widget.type}
       >
         <WidgetContent
