@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { MomentPost, MomentComment } from "@/lib/moments-types";
 import { BilingualTextBlock, MediaImageWithPreview } from "@/components/chat/message-bubble";
@@ -42,7 +42,7 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const [photoRegenerating, setPhotoRegenerating] = useState(false);
     const [photoRetryError, setPhotoRetryError] = useState("");
     const [showPostActions, setShowPostActions] = useState(false);
-    const [showBottomMenu, setShowBottomMenu] = useState(false); // 新增：控制底部弹窗的显示
+    const [showBottomMenu, setShowBottomMenu] = useState(false); // 控制微信折叠窗显示
     const [editingPostOpen, setEditingPostOpen] = useState(false);
     const [postContentDraft, setPostContentDraft] = useState("");
     const [postPhotoDescDraft, setPostPhotoDescDraft] = useState("");
@@ -51,6 +51,21 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const [editingComment, setEditingComment] = useState<MomentComment | null>(null);
     const [commentDraft, setCommentDraft] = useState("");
     const [deleteCommentTarget, setDeleteCommentTarget] = useState<MomentComment | null>(null);
+
+    // 新增：用于“更多”按钮点击外部关闭的 ref
+    const menuBtnRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (showBottomMenu && menuRef.current && menuBtnRef.current) {
+                if (!menuRef.current.contains(event.target as Node) && !menuBtnRef.current.contains(event.target as Node)) {
+                    setShowBottomMenu(false);
+                }
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showBottomMenu]);
 
     // Resolve asset:// photo URLs from IndexedDB
     const [resolvedPhotoUrl, setResolvedPhotoUrl] = useState<string | null>(null);
@@ -261,6 +276,7 @@ return (
             <div className="feed-post-author flex-1 flex items-center gap-1">
                 <span className="feed-post-author-name ts-16 font-bold text-[#576b95]">{authorName}</span>
             </div>
+            {/* 右上角三点，保留功能，颜色改成白色透明 */}
             <button
                 className="feed-post-more-btn p-1 text-white opacity-0 hover:opacity-100 transition-opacity"
                 type="button"
@@ -300,25 +316,27 @@ return (
             )}
         </div>
 
-        {/* Text content */}
-        <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words mb-3 w-full">
-            <BilingualTextBlock
-                text={post.content}
-                mode="plain"
-                defaultExpanded={defaultTranslationExpanded}
-            />
-        </div>
+        {/* 1. 内容正文 - 增加 ml-[52px] 与用户名对齐，并用条件判断避免出现空行句号 */}
+        {post.content && (
+            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mb-3 w-[calc(100%-52px)]">
+                <BilingualTextBlock
+                    text={post.content}
+                    mode="plain"
+                    defaultExpanded={defaultTranslationExpanded}
+                />
+            </div>
+        )}
 
-        {/* Location */}
+        {/* 2. 地点 - 同样增加 ml-[52px] */}
         {post.location && (
-            <div className="feed-post-location mb-3 text-[var(--c-icon)] opacity-80 flex items-center ts-12">
+            <div className="feed-post-location mb-3 text-[var(--c-icon)] opacity-80 flex items-center ts-12 ml-[52px]">
                 <MapPin size={12} strokeWidth={1.75} className="mr-1" />
                 {post.location}
             </div>
         )}
 
-        {/* Photo area */}
-        <div className="feed-post-media mb-5 w-full flex flex-col gap-2">
+        {/* 3. 图片区域 - 与文字对齐 ml-[52px] */}
+        <div className="feed-post-media mb-5 w-[calc(100%-52px)] flex flex-col gap-2 ml-[52px]">
             {resolvedPhotoUrl && (
                 <MediaImageWithPreview
                     url={resolvedPhotoUrl}
@@ -371,190 +389,193 @@ return (
             )}
             {photoRetryError && <div className="feed-post-photo-retry-error">生成失败：{photoRetryError}</div>}
         </div>
-        {showPhotoPromptEditor && typeof document !== "undefined" && createPortal(
-            <div className="modal-overlay" data-ui="modal" onClick={() => setShowPhotoPromptEditor(false)}>
-                <div className="modal-dialog feed-post-photo-prompt-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header" data-ui="modal-header">
-                        <h3 className="modal-title">重新生成图片</h3>
-                    </div>
-                    <div className="modal-body feed-post-photo-prompt-body" data-ui="modal-body">
-                        <textarea
-                            className="ui-textarea feed-post-photo-prompt-textarea"
-                            value={photoPromptDraft}
-                            onChange={e => setPhotoPromptDraft(e.target.value)}
-                            placeholder="输入图片提示词"
-                            disabled={photoRegenerating}
-                        />
-                        {photoRetryError && <div className="feed-post-photo-retry-error">生成失败：{photoRetryError}</div>}
-                    </div>
-                    <div className="modal-footer" data-ui="modal-footer">
-                        <button className="ui-btn ui-btn-ghost" onClick={() => setShowPhotoPromptEditor(false)}>取消</button>
-                        <button
-                            className="ui-btn ui-btn-action"
-                            disabled={photoRegenerating || !photoPromptDraft.trim()}
-                            onClick={handleRegeneratePhotoWithPrompt}
-                        >
-                            生成
-                        </button>
-                    </div>
-                </div>
-            </div>,
-            document.body,
-        )}
-
-        {editingPostOpen && typeof document !== "undefined" && createPortal(
-            <div className="modal-overlay" data-ui="modal" onClick={() => setEditingPostOpen(false)}>
-                <div className="modal-dialog feed-post-edit-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header" data-ui="modal-header">
-                        <h3 className="modal-title">编辑动态</h3>
-                    </div>
-                    <div className="modal-body feed-post-edit-body" data-ui="modal-body">
-                        <label className="feed-post-edit-field">
-                            <span>正文</span>
+                    {showPhotoPromptEditor && typeof document !== "undefined" && createPortal(
+                <div className="modal-overlay" data-ui="modal" onClick={() => setShowPhotoPromptEditor(false)}>
+                    <div className="modal-dialog feed-post-photo-prompt-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header" data-ui="modal-header">
+                            <h3 className="modal-title">重新生成图片</h3>
+                        </div>
+                        <div className="modal-body feed-post-photo-prompt-body" data-ui="modal-body">
                             <textarea
-                                className="ui-textarea feed-post-edit-textarea"
-                                value={postContentDraft}
-                                onChange={e => setPostContentDraft(e.target.value)}
-                                placeholder="输入动态正文"
+                                className="ui-textarea feed-post-photo-prompt-textarea"
+                                value={photoPromptDraft}
+                                onChange={e => setPhotoPromptDraft(e.target.value)}
+                                placeholder="输入图片提示词"
+                                disabled={photoRegenerating}
                             />
-                        </label>
-                        <label className="feed-post-edit-field">
-                            <span>图片描述</span>
-                            <textarea
-                                className="ui-textarea feed-post-edit-textarea feed-post-edit-textarea-small"
-                                value={postPhotoDescDraft}
-                                onChange={e => setPostPhotoDescDraft(e.target.value)}
-                                placeholder="不需要图片描述时留空"
-                            />
-                        </label>
-                        <label className="feed-post-edit-check">
-                            <input
-                                type="checkbox"
-                                checked={postUseReferenceDraft}
-                                disabled={!postPhotoDescDraft.trim()}
-                                onChange={e => setPostUseReferenceDraft(e.target.checked)}
-                            />
-                            <span>图片使用角色参考图</span>
-                        </label>
-                        <label className="feed-post-edit-field">
-                            <span>地点</span>
-                            <input
-                                className="ui-input feed-post-edit-input"
-                                value={postLocationDraft}
-                                onChange={e => setPostLocationDraft(e.target.value)}
-                                placeholder="不显示地点时留空"
-                            />
-                        </label>
+                            {photoRetryError && <div className="feed-post-photo-retry-error">生成失败：{photoRetryError}</div>}
+                        </div>
+                        <div className="modal-footer" data-ui="modal-footer">
+                            <button className="ui-btn ui-btn-ghost" onClick={() => setShowPhotoPromptEditor(false)}>取消</button>
+                            <button
+                                className="ui-btn ui-btn-action"
+                                disabled={photoRegenerating || !photoPromptDraft.trim()}
+                                onClick={handleRegeneratePhotoWithPrompt}
+                            >
+                                生成
+                            </button>
+                        </div>
                     </div>
-                    <div className="modal-footer" data-ui="modal-footer">
-                        <button className="ui-btn ui-btn-ghost" onClick={() => setEditingPostOpen(false)}>取消</button>
-                        <button className="ui-btn ui-btn-action" disabled={!postContentDraft.trim()} onClick={handlePostEditSave}>保存</button>
-                    </div>
-                </div>
-            </div>,
-            document.body,
-        )}
+                </div>,
+                document.body,
+            )}
 
-        {editingComment && typeof document !== "undefined" && createPortal(
-            <div className="modal-overlay" data-ui="modal" onClick={() => setEditingComment(null)}>
-                <div className="modal-dialog feed-post-edit-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header" data-ui="modal-header">
-                        <h3 className="modal-title">编辑评论</h3>
+            {editingPostOpen && typeof document !== "undefined" && createPortal(
+                <div className="modal-overlay" data-ui="modal" onClick={() => setEditingPostOpen(false)}>
+                    <div className="modal-dialog feed-post-edit-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header" data-ui="modal-header">
+                            <h3 className="modal-title">编辑动态</h3>
+                        </div>
+                        <div className="modal-body feed-post-edit-body" data-ui="modal-body">
+                            <label className="feed-post-edit-field">
+                                <span>正文</span>
+                                <textarea
+                                    className="ui-textarea feed-post-edit-textarea"
+                                    value={postContentDraft}
+                                    onChange={e => setPostContentDraft(e.target.value)}
+                                    placeholder="输入动态正文"
+                                />
+                            </label>
+                            <label className="feed-post-edit-field">
+                                <span>图片描述</span>
+                                <textarea
+                                    className="ui-textarea feed-post-edit-textarea feed-post-edit-textarea-small"
+                                    value={postPhotoDescDraft}
+                                    onChange={e => setPostPhotoDescDraft(e.target.value)}
+                                    placeholder="不需要图片描述时留空"
+                                />
+                            </label>
+                            <label className="feed-post-edit-check">
+                                <input
+                                    type="checkbox"
+                                    checked={postUseReferenceDraft}
+                                    disabled={!postPhotoDescDraft.trim()}
+                                    onChange={e => setPostUseReferenceDraft(e.target.checked)}
+                                />
+                                <span>图片使用角色参考图</span>
+                            </label>
+                            <label className="feed-post-edit-field">
+                                <span>地点</span>
+                                <input
+                                    className="ui-input feed-post-edit-input"
+                                    value={postLocationDraft}
+                                    onChange={e => setPostLocationDraft(e.target.value)}
+                                    placeholder="不显示地点时留空"
+                                />
+                            </label>
+                        </div>
+                        <div className="modal-footer" data-ui="modal-footer">
+                            <button className="ui-btn ui-btn-ghost" onClick={() => setEditingPostOpen(false)}>取消</button>
+                            <button className="ui-btn ui-btn-action" disabled={!postContentDraft.trim()} onClick={handlePostEditSave}>保存</button>
+                        </div>
                     </div>
-                    <div className="modal-body feed-post-edit-body" data-ui="modal-body">
-                        <label className="feed-post-edit-field">
-                            <span>评论内容</span>
-                            <textarea
-                                className="ui-textarea feed-post-edit-textarea feed-post-edit-textarea-small"
-                                value={commentDraft}
-                                onChange={e => setCommentDraft(e.target.value)}
-                                placeholder="输入评论内容"
-                            />
-                        </label>
-                    </div>
-                    <div className="modal-footer" data-ui="modal-footer">
-                        <button
-                            className="ui-btn ui-btn-ghost"
-                            onClick={() => {
-                                setEditingComment(null);
-                                setCommentDraft("");
-                            }}
-                        >
-                            取消
-                        </button>
-                        <button className="ui-btn ui-btn-action" disabled={!commentDraft.trim()} onClick={handleCommentEditSave}>保存</button>
-                    </div>
-                </div>
-            </div>,
-            document.body,
-        )}
+                </div>,
+                document.body,
+            )}
 
-        {deleteCommentTarget && (
-            <ConfirmDialog
-                title="删除这条评论？"
-                message={(() => {
-                    const descendantCount = getCommentDescendantCount(deleteCommentTarget.id);
-                    return descendantCount > 0
-                        ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。`
-                        : "删除后无法恢复。";
-                })()}
-                icon={Trash2}
-                variant="danger"
-                confirmLabel="删除"
-                cancelLabel="取消"
-                onConfirm={handleConfirmCommentDelete}
-                onCancel={() => setDeleteCommentTarget(null)}
-            />
-        )}
-                    {/* Timestamp + action buttons (微信风格折叠窗) */}
-            <div className="feed-post-action-row flex items-center justify-between mt-4 mb-3 relative">
+            {editingComment && typeof document !== "undefined" && createPortal(
+                <div className="modal-overlay" data-ui="modal" onClick={() => setEditingComment(null)}>
+                    <div className="modal-dialog feed-post-edit-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header" data-ui="modal-header">
+                            <h3 className="modal-title">编辑评论</h3>
+                        </div>
+                        <div className="modal-body feed-post-edit-body" data-ui="modal-body">
+                            <label className="feed-post-edit-field">
+                                <span>评论内容</span>
+                                <textarea
+                                    className="ui-textarea feed-post-edit-textarea feed-post-edit-textarea-small"
+                                    value={commentDraft}
+                                    onChange={e => setCommentDraft(e.target.value)}
+                                    placeholder="输入评论内容"
+                                />
+                            </label>
+                        </div>
+                        <div className="modal-footer" data-ui="modal-footer">
+                            <button
+                                className="ui-btn ui-btn-ghost"
+                                onClick={() => {
+                                    setEditingComment(null);
+                                    setCommentDraft("");
+                                }}
+                            >
+                                取消
+                            </button>
+                            <button className="ui-btn ui-btn-action" disabled={!commentDraft.trim()} onClick={handleCommentEditSave}>保存</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body,
+            )}
+
+            {deleteCommentTarget && (
+                <ConfirmDialog
+                    title="删除这条评论？"
+                    message={(() => {
+                        const descendantCount = getCommentDescendantCount(deleteCommentTarget.id);
+                        return descendantCount > 0
+                            ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。`
+                            : "删除后无法恢复。";
+                    })()}
+                    icon={Trash2}
+                    variant="danger"
+                    confirmLabel="删除"
+                    cancelLabel="取消"
+                    onConfirm={handleConfirmCommentDelete}
+                    onCancel={() => setDeleteCommentTarget(null)}
+                />
+            )}
+
+            {/* 4. 底部时间 & 微信折叠菜单 - 也是 ml-[52px] */}
+            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-4 mb-3">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
-                <div className="flex items-center">
+                
+                {/* 右下角微信风格灰底两点按钮 */}
+                <div className="flex items-center relative">
                     <button
+                        ref={menuBtnRef}
                         onClick={() => setShowBottomMenu(!showBottomMenu)}
-                        className="flex items-center justify-center bg-[#f7f7f7] rounded-[6px] p-1.5 transition-colors hover:bg-[#ebebeb]"
+                        className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] p-1.5 transition-colors"
                     >
                         <MoreHorizontal size={20} strokeWidth={2} className="text-[#576b95]" />
                     </button>
-                    {/* 底部操作菜单浮窗 */}
-                    {showBottomMenu && typeof document !== "undefined" && createPortal(
-                        <>
-                            <div className="fixed inset-0 z-[21]" onClick={() => setShowBottomMenu(false)} />
-                            <div className="absolute bottom-full right-0 mb-3 z-[22] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-24 overflow-hidden">
+                    
+                    {/* 弹出的小折叠窗（点击外部自动关闭） */}
+                    {showBottomMenu && (
+                        <div
+                            ref={menuRef}
+                            className="absolute bottom-full right-0 mb-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-24 overflow-hidden"
+                        >
+                            <button
+                                onClick={() => { handleLike(); setShowBottomMenu(false); }}
+                                className="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-gray-50"
+                            >
+                                赞
+                            </button>
+                            <button
+                                onClick={() => { handleToggleComment(); setShowBottomMenu(false); }}
+                                className="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-gray-50"
+                            >
+                                评论
+                            </button>
+                            {onRequestDelete && (
                                 <button
-                                    onClick={() => { handleLike(); setShowBottomMenu(false); }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-gray-50"
+                                    onClick={() => { handleDelete(); setShowBottomMenu(false); }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-[#576b95] hover:bg-gray-50"
                                 >
-                                    赞
+                                    删除
                                 </button>
-                                <button
-                                    onClick={() => { handleToggleComment(); setShowBottomMenu(false); }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-gray-50"
-                                >
-                                    评论
-                                </button>
-                                {onRequestDelete && (
-                                    <button
-                                        onClick={() => { handleDelete(); setShowBottomMenu(false); }}
-                                        className="block w-full text-left px-4 py-2 text-sm text-[#576b95] hover:bg-gray-50"
-                                    >
-                                        删除
-                                    </button>
-                                )}
-                            </div>
-                        </>,
-                        document.body
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
 
-            {/* Likes + Comments section (仿微信灰色圆角框) */}
+            {/* 5. 点赞评论部分（灰色背景底框，线条割） - 对齐用户名 */}
             {(likeNames.length > 0 || comments.length > 0) && (
-                <div className="feed-feedback-section w-full flex flex-col mb-3 mt-1 bg-[#f7f7f7] rounded-[6px] pt-2 px-3 pb-1.5">
-                    
-                    {/* Likes row */}
+                <div className="feed-feedback-section ml-[52px] w-[calc(100%-52px)] flex flex-col mb-3 mt-1 bg-[#f7f7f7] rounded-[6px] pt-2 px-3 pb-1.5">
+                    {/* 点赞行（空心深蓝爱心 + 名字） */}
                     {likeNames.length > 0 && (
-                        <div className={`feed-like-summary flex items-start gap-1 ts-15 leading-[1.55] text-[var(--c-text-title)] ${comments.length > 0 ? 'border-b border-[#e5e5e5] pb-2 mb-1' : 'pb-1'}`}>
+                        <div className={`feed-like-summary flex items-start gap-1 ts-15 leading-[1.55] text-[var(--c-text-title)] ${comments.length > 0 ? 'border-b border-[#ebebeb] pb-2 mb-1' : 'pb-1'}`}>
                             <span className="feed-like-summary-icon shrink-0 mt-[4px] mr-1 text-[#576b95]">
                                 <Heart size={15} strokeWidth={1.75} fill="none" />
                             </span>
@@ -564,7 +585,7 @@ return (
                         </div>
                     )}
 
-                    {/* Comments list */}
+                    {/* 评论列表 */}
                     {comments.length > 0 && (
                         <div className="feed-comments flex flex-col gap-1 w-full mt-1 pb-1">
                             {commentThreads.map(({ root, replies }) => {
@@ -814,4 +835,4 @@ function formatTimeAgo(isoStr: string): string {
 
     const d = new Date(isoStr);
     return `${d.getMonth() + 1}月${d.getDate()}日`;
-}
+        }
