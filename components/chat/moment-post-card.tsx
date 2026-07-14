@@ -43,7 +43,7 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const [photoRetryError, setPhotoRetryError] = useState("");
     const [showPostActions, setShowPostActions] = useState(false);
     const [showBottomMenu, setShowBottomMenu] = useState(false); // 控制右下角帖子折叠窗
-    const [commentMoreMenuId, setCommentMoreMenuId] = useState<string | null>(null); // 新增：控制评论的"隐藏区"折叠窗
+    const [commentMoreMenuId, setCommentMoreMenuId] = useState<string | null>(null); // 新增：控制评论的折叠窗
     const [editingPostOpen, setEditingPostOpen] = useState(false);
     const [postContentDraft, setPostContentDraft] = useState("");
     const [postPhotoDescDraft, setPostPhotoDescDraft] = useState("");
@@ -268,6 +268,7 @@ return (
             <div className="feed-post-author flex-1 flex items-center gap-1">
                 <span className="feed-post-author-name ts-16 font-bold text-[#576b95]">{authorName}</span>
             </div>
+            {/* 右上角三点，已隐藏为白色，但功能保留 */}
             <button
                 className="feed-post-more-btn p-1 text-white opacity-0 hover:opacity-100 transition-opacity"
                 type="button"
@@ -295,9 +296,9 @@ return (
             )}
         </div>
 
-        {/* 修复点1：去掉了导致空白句号的空内容渲染，并将下边距调小一半 (mb-2) */}
+        {/* 修复点：去掉了可能导致空句号的逻辑，并缩小下边距至 mb-1 */}
         {post.content && (
-            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mb-2 w-[calc(100%-52px)]">
+            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mb-1 w-[calc(100%-52px)]">
                 <BilingualTextBlock text={post.content} mode="plain" defaultExpanded={defaultTranslationExpanded} />
             </div>
         )}
@@ -395,8 +396,8 @@ return (
                 <ConfirmDialog title="删除这条评论？" message={(() => { const descendantCount = getCommentDescendantCount(deleteCommentTarget.id); return descendantCount > 0 ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。` : "删除后无法恢复。"; })()} icon={Trash2} variant="danger" confirmLabel="删除" cancelLabel="取消" onConfirm={handleConfirmCommentDelete} onCancel={() => setDeleteCommentTarget(null)} />
             )}
 
-            {/* 底部时间与折叠菜单 - 边框已经统一为 #f0f0f0 */}
-            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-4 mb-3">
+            {/* 修复点：距离上移一半 (mt-4 -> mt-2)，按钮跟时间同步上移 */}
+            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-2 mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
                     <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] p-1.5 transition-colors">
@@ -412,7 +413,7 @@ return (
                 </div>
             </div>
 
-            {/* 点赞评论区域 - 背景色统一修改为 bg-[#f0f0f0] */}
+            {/* 点赞评论区域 - 统一 bg-[#f0f0f0] */}
             {(likeNames.length > 0 || comments.length > 0) && (
                 <div className="feed-feedback-section ml-[52px] w-[calc(100%-52px)] flex flex-col mb-3 mt-1 bg-[#f0f0f0] rounded-[6px] pt-2 px-3 pb-1.5">
                     {likeNames.length > 0 && (
@@ -435,7 +436,11 @@ return (
                                             <div className="feed-comment-avatar feed-comment-avatar-root w-[32px] h-[32px] rounded-[6px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                                                 {rootAvatar ? <img src={rootAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                             </div>
-                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words">
+                                            {/* 移除回复按钮和三点按钮，只需点击评论内容区域即可弹出折叠菜单 */}
+                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words relative cursor-pointer" onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCommentMoreMenuId(prev => prev === root.id ? null : root.id);
+                                            }}>
                                                 <div className="feed-comment-main flex flex-col gap-[1px]">
                                                     <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{rootName}</div>
                                                     <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)]">
@@ -443,21 +448,20 @@ return (
                                                         <MomentInlineBilingualText text={root.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
                                                     </div>
                                                 </div>
-                                                {/* 修复点3&4：去掉 pencil 和 trash2，时间靠右，新增评论"隐藏区"折叠菜单 */}
-                                                <div className="feed-comment-meta flex items-center gap-3 mt-[2px] ts-13 text-[var(--c-icon)] w-full">
-                                                    <button type="button" title="回复" aria-label="回复评论" onClick={(e) => { e.stopPropagation(); handleReply(root); }} className="feed-comment-reply-btn text-[#576b95]">回复</button>
-                                                    <span className="feed-comment-time whitespace-nowrap ml-auto mr-2">{formatTimeAgo(root.createdAt)}</span>
-                                                    
-                                                    <div className="relative flex items-center">
-                                                        <button type="button" title="更多操作" onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(prev => prev === root.id ? null : root.id); }} className="text-[var(--c-icon)] hover:text-[#576b95] p-1"><MoreHorizontal size={16} strokeWidth={1.75} /></button>
-                                                        {commentMoreMenuId === root.id && (
-                                                            <div className="absolute bottom-full right-0 mb-1 z-30 bg-white rounded-md shadow-xl border border-gray-200 py-1 w-16 text-center">
-                                                                <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
-                                                                <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                
+                                                {/* 底部只剩一个靠右的时间（右上角） */}
+                                                <div className="feed-comment-meta flex items-center mt-[2px] ts-13 text-[var(--c-icon)] w-full">
+                                                    <span className="feed-comment-time whitespace-nowrap ml-auto">{formatTimeAgo(root.createdAt)}</span>
                                                 </div>
+
+                                                {/* 点击内容弹出的折叠菜单（包含回复、编辑、删除） */}
+                                                {commentMoreMenuId === root.id && (
+                                                    <div className="absolute bottom-full right-0 mb-1 z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
+                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); handleReply(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">回复</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         {replies.length > 0 && (
@@ -471,7 +475,10 @@ return (
                                                             <div className="feed-comment-avatar feed-comment-avatar-child w-[22px] h-[22px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center mt-[2px]">
                                                                 {replyAvatar ? <img src={replyAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                                             </div>
-                                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words">
+                                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words relative cursor-pointer" onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id);
+                                                            }}>
                                                                 <div className="feed-comment-main flex flex-col gap-[1px]">
                                                                     <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{replyName}</div>
                                                                     <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)]">
@@ -479,20 +486,20 @@ return (
                                                                         <MomentInlineBilingualText text={reply.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
                                                                     </div>
                                                                 </div>
-                                                                <div className="feed-comment-meta flex items-center gap-3 mt-[2px] ts-13 text-[var(--c-icon)] w-full">
-                                                                    <button type="button" title="回复" aria-label="回复评论" onClick={(e) => { e.stopPropagation(); handleReply(reply); }} className="feed-comment-reply-btn text-[#576b95]">回复</button>
-                                                                    <span className="feed-comment-time whitespace-nowrap ml-auto mr-2">{formatTimeAgo(reply.createdAt)}</span>
-                                                                    
-                                                                    <div className="relative flex items-center">
-                                                                        <button type="button" title="更多操作" onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id); }} className="text-[var(--c-icon)] hover:text-[#576b95] p-1"><MoreHorizontal size={16} strokeWidth={1.75} /></button>
-                                                                        {commentMoreMenuId === reply.id && (
-                                                                            <div className="absolute bottom-full right-0 mb-1 z-30 bg-white rounded-md shadow-xl border border-gray-200 py-1 w-16 text-center">
-                                                                                <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
-                                                                                <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
+                                                                
+                                                                {/* 子评论时间靠右 */}
+                                                                <div className="feed-comment-meta flex items-center mt-[2px] ts-13 text-[var(--c-icon)] w-full">
+                                                                    <span className="feed-comment-time whitespace-nowrap ml-auto">{formatTimeAgo(reply.createdAt)}</span>
                                                                 </div>
+
+                                                                {/* 子评论点击内容弹出的折叠菜单 */}
+                                                                {commentMoreMenuId === reply.id && (
+                                                                    <div className="absolute bottom-full right-0 mb-1 z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
+                                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); handleReply(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">回复</button>
+                                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
+                                                                        <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );
