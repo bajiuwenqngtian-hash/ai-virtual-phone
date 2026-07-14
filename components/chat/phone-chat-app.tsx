@@ -231,7 +231,7 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                 {activeTab === "me" && <UserProfilePanel onClose={() => setActiveTab("messages")} />}
             </div>
 
-                                                            {/* 微信风格底部导航栏 */}
+                                                                        {/* 微信风格底部导航栏 */}
             {!activeSession && !activeMascot && !hideTabBar && (
                 <nav className="bg-[#F7F7F7] border-t border-[#D9D9D9] shrink-0 flex justify-around items-center h-[58px]" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}>
                     
@@ -247,22 +247,22 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                         <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#111111]"}`}>微信</span>
                     </button>
 
-                    {/* 2. 通讯录 (大头 + 钝角衣架身子 + 保持不变的实心黑线) */}
+                    {/* 2. 通讯录 (大头圆顶 + 明显竖线脖子 + 放大下沉 + 实心黑线) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("contacts")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "contacts" ? (
-                                <path d="M 5.5 11.5 A 3 4.5 0 1 1 9.5 11.5 L 15 16 A 1.2 1.2 0 0 1 13.8 17.2 H 1.2 A 1.2 1.2 0 0 1 0 16 Z M 14 7.5 h 8 v 1.5 h -8 z M 16 11.5 h 6 v 1.5 h -6 z M 18 15.5 h 4 v 1.5 h -4 z" fill="#07C160" />
+                                <path d="M 8.5 3 A 3.2 4.2 0 0 1 10.5 10.5 L 10.5 12.5 L 16.5 18.5 A 1.5 1.5 0 0 1 15 21 H 2 A 1.5 1.5 0 0 1 0.5 18.5 L 6.5 12.5 L 6.5 10.5 A 3.2 4.2 0 0 1 8.5 3 Z M 13.5 10 h 8.5 v 1.2 h -8.5 z M 15 14 h 7 v 1.2 h -7 z M 17 18 h 5 v 1.2 h -5 z" fill="#07C160" />
                             ) : (
                                 <g>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M 5.5 11.5 A 3 4.5 0 1 1 9.5 11.5 L 15 16 A 1.2 1.2 0 0 1 13.8 17.2 H 1.2 A 1.2 1.2 0 0 1 0 16 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
-                                    <path d="M 14 7.5 h 8 v 1.2 h -8 z M 16 11.5 h 6 v 1.2 h -6 z M 18 15.5 h 4 v 1.2 h -4 z" fill="#111111" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M 8.5 3 A 3.2 4.2 0 0 1 10.5 10.5 L 10.5 12.5 L 16.5 18.5 A 1.5 1.5 0 0 1 15 21 H 2 A 1.5 1.5 0 0 1 0.5 18.5 L 6.5 12.5 L 6.5 10.5 A 3.2 4.2 0 0 1 8.5 3 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                    <path d="M 13.5 10 h 8.5 v 1.2 h -8.5 z M 15 14 h 7 v 1.2 h -7 z M 17 18 h 5 v 1.2 h -5 z" fill="#111111" />
                                 </g>
                             )}
                         </svg>
                         <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#111111]"}`}>通讯录</span>
                     </button>
 
-                    {/* 3. 发现 (上一版改好的拉长平行四边形，保持不变) */}
+                    {/* 3. 发现 (拉长的平行四边形，完美原样保持) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("feeds")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "feeds" ? (
@@ -280,13 +280,13 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                         <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#111111]"}`}>发现</span>
                     </button>
 
-                    {/* 4. 我 (纯正的居中大头 + 钝角衣架身子) */}
+                    {/* 4. 我 (纯正的居中大头圆顶 + 明显竖线脖子 + 放大下沉) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("me")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "me" ? (
-                                <path d="M 10 11.5 A 3 4.5 0 1 1 14 11.5 L 19.5 16 A 1.2 1.2 0 0 1 18.3 17.2 H 5.7 A 1.2 1.2 0 0 1 4.5 16 Z" fill="#07C160" />
+                                <path d="M 12 2.5 A 3.5 4.5 0 0 1 14.2 10.5 L 14.2 12.5 L 21.5 18.5 A 1.5 1.5 0 0 1 20 21 H 4 A 1.5 1.5 0 0 1 2.5 18.5 L 9.8 12.5 L 9.8 10.5 A 3.5 4.5 0 0 1 12 2.5 Z" fill="#07C160" />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M 10 11.5 A 3 4.5 0 1 1 14 11.5 L 19.5 16 A 1.2 1.2 0 0 1 18.3 17.2 H 5.7 A 1.2 1.2 0 0 1 4.5 16 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M 12 2.5 A 3.5 4.5 0 0 1 14.2 10.5 L 14.2 12.5 L 21.5 18.5 A 1.5 1.5 0 0 1 20 21 H 4 A 1.5 1.5 0 0 1 2.5 18.5 L 9.8 12.5 L 9.8 10.5 A 3.5 4.5 0 0 1 12 2.5 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
                             )}
                         </svg>
                         <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#111111]"}`}>我</span>
@@ -294,6 +294,7 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
 
                 </nav>
             )}
+
 
 
             {/* 聊天室弹窗 */}
