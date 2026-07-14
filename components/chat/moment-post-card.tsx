@@ -42,8 +42,8 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const [photoRegenerating, setPhotoRegenerating] = useState(false);
     const [photoRetryError, setPhotoRetryError] = useState("");
     const [showPostActions, setShowPostActions] = useState(false);
-    const [showBottomMenu, setShowBottomMenu] = useState(false); // 控制右下角帖子折叠窗
-    const [commentMoreMenuId, setCommentMoreMenuId] = useState<string | null>(null); // 新增：控制评论的折叠窗
+    const [showBottomMenu, setShowBottomMenu] = useState(false);
+    const [commentMoreMenuId, setCommentMoreMenuId] = useState<string | null>(null);
     const [editingPostOpen, setEditingPostOpen] = useState(false);
     const [postContentDraft, setPostContentDraft] = useState("");
     const [postPhotoDescDraft, setPostPhotoDescDraft] = useState("");
@@ -67,7 +67,6 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showBottomMenu]);
 
-    // Resolve asset:// photo URLs from IndexedDB
     const [resolvedPhotoUrl, setResolvedPhotoUrl] = useState<string | null>(null);
     useEffect(() => {
         let cancelled = false;
@@ -258,7 +257,7 @@ const handleRegeneratePhotoWithPrompt = useCallback(() => {
 return (
     <div data-moment-post-id={post.id} className="feed-post relative border-b-[2.5px] border-[var(--c-card-border)] pb-5 mb-5 w-full bg-transparent px-4 pt-2">
         <div className="feed-post-header flex items-center gap-3 mb-3">
-            <div className="feed-post-author-avatar w-[40px] h-[40px] rounded-[6px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
+            <div className="feed-post-author-avatar w-[40px] h-[40px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                 {authorAvatar ? (
                     <img src={authorAvatar} alt="" className="feed-post-author-avatar-image w-full h-full object-cover" />
                 ) : (
@@ -268,7 +267,6 @@ return (
             <div className="feed-post-author flex-1 flex items-center gap-1">
                 <span className="feed-post-author-name ts-16 font-bold text-[#576b95]">{authorName}</span>
             </div>
-            {/* 右上角三点，已隐藏为白色，但功能保留 */}
             <button
                 className="feed-post-more-btn p-1 text-white opacity-0 hover:opacity-100 transition-opacity"
                 type="button"
@@ -296,50 +294,53 @@ return (
             )}
         </div>
 
-        {/* 修复点：去掉了可能导致空句号的逻辑，并缩小下边距至 mb-1 */}
+        {/* 核心修复1：强制压缩正文间距（mt-1 mb-1），去除可能导致空白的元素 */}
         {post.content && (
-            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mb-1 w-[calc(100%-52px)]">
+            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-1 mb-1 w-[calc(100%-52px)]">
                 <BilingualTextBlock text={post.content} mode="plain" defaultExpanded={defaultTranslationExpanded} />
             </div>
         )}
 
         {post.location && (
-            <div className="feed-post-location mb-3 text-[var(--c-icon)] opacity-80 flex items-center ts-12 ml-[52px]">
+            <div className="feed-post-location mb-2 text-[var(--c-icon)] opacity-80 flex items-center ts-12 ml-[52px]">
                 <MapPin size={12} strokeWidth={1.75} className="mr-1" />
                 {post.location}
             </div>
         )}
 
-        <div className="feed-post-media mb-5 w-[calc(100%-52px)] flex flex-col gap-2 ml-[52px]">
-            {resolvedPhotoUrl && (
-                <MediaImageWithPreview
-                    url={resolvedPhotoUrl}
-                    title=""
-                    filename={`moment-${post.id}.png`}
-                    onError={() => { setResolvedPhotoUrl(null); }}
-                    sideAction={canRegeneratePhoto ? (
-                        <button type="button" className="feed-post-photo-retry-btn" disabled={photoRegenerating} aria-label="重新生成朋友圈图片" onClick={e => { e.stopPropagation(); openPhotoPromptEditor(); }}>
-                            <RefreshCw size={14} className={photoRegenerating ? "is-spinning" : undefined} />
-                        </button>
-                    ) : undefined}
-                />
-            )}
-            {fallbackPhotoDescription && (
-                <div className="feed-post-photo-retry-stack">
-                    <div className="feed-post-photo-retry-row">
-                        <div className="feed-post-photo-description ts-13 italic leading-[1.8] opacity-80 text-[var(--c-text)] px-4 py-3 inline-block max-w-full" style={{ background: "color-mix(in srgb, var(--c-text) 10%, transparent)", borderRadius: 0 }}>
-                            <MomentInlineBilingualText text={fallbackPhotoDescription} defaultExpanded={defaultTranslationExpanded} />
-                            {canRetryPhoto && (
-                                <button type="button" className="feed-post-photo-retry-btn feed-post-photo-inline-retry-btn" disabled={photoRegenerating} aria-label="重新生成朋友圈图片" onClick={e => { e.stopPropagation(); openPhotoPromptEditor(); }}>
-                                    <RefreshCw size={14} className={photoRegenerating ? "is-spinning" : undefined} />
-                                </button>
-                            )}
+        {/* 修复图片布局，没有图片时不产生无用边距 */}
+        {resolvedPhotoUrl || fallbackPhotoDescription ? (
+            <div className="feed-post-media mb-4 w-[calc(100%-52px)] flex flex-col gap-2 ml-[52px]">
+                {resolvedPhotoUrl && (
+                    <MediaImageWithPreview
+                        url={resolvedPhotoUrl}
+                        title=""
+                        filename={`moment-${post.id}.png`}
+                        onError={() => { setResolvedPhotoUrl(null); }}
+                        sideAction={canRegeneratePhoto ? (
+                            <button type="button" className="feed-post-photo-retry-btn" disabled={photoRegenerating} aria-label="重新生成朋友圈图片" onClick={e => { e.stopPropagation(); openPhotoPromptEditor(); }}>
+                                <RefreshCw size={14} className={photoRegenerating ? "is-spinning" : undefined} />
+                            </button>
+                        ) : undefined}
+                    />
+                )}
+                {fallbackPhotoDescription && (
+                    <div className="feed-post-photo-retry-stack">
+                        <div className="feed-post-photo-retry-row">
+                            <div className="feed-post-photo-description ts-13 italic leading-[1.8] opacity-80 text-[var(--c-text)] px-4 py-3 inline-block max-w-full" style={{ background: "color-mix(in srgb, var(--c-text) 10%, transparent)", borderRadius: 0 }}>
+                                <MomentInlineBilingualText text={fallbackPhotoDescription} defaultExpanded={defaultTranslationExpanded} />
+                                {canRetryPhoto && (
+                                    <button type="button" className="feed-post-photo-retry-btn feed-post-photo-inline-retry-btn" disabled={photoRegenerating} aria-label="重新生成朋友圈图片" onClick={e => { e.stopPropagation(); openPhotoPromptEditor(); }}>
+                                        <RefreshCw size={14} className={photoRegenerating ? "is-spinning" : undefined} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-            {photoRetryError && <div className="feed-post-photo-retry-error">生成失败：{photoRetryError}</div>}
-        </div>
+                )}
+                {photoRetryError && <div className="feed-post-photo-retry-error">生成失败：{photoRetryError}</div>}
+            </div>
+        ) : null}
                     {showPhotoPromptEditor && typeof document !== "undefined" && createPortal(
                 <div className="modal-overlay" data-ui="modal" onClick={() => setShowPhotoPromptEditor(false)}>
                     <div className="modal-dialog feed-post-photo-prompt-dialog" data-ui="modal-dialog" onClick={e => e.stopPropagation()}>
@@ -396,8 +397,8 @@ return (
                 <ConfirmDialog title="删除这条评论？" message={(() => { const descendantCount = getCommentDescendantCount(deleteCommentTarget.id); return descendantCount > 0 ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。` : "删除后无法恢复。"; })()} icon={Trash2} variant="danger" confirmLabel="删除" cancelLabel="取消" onConfirm={handleConfirmCommentDelete} onCancel={() => setDeleteCommentTarget(null)} />
             )}
 
-            {/* 修复点：距离上移一半 (mt-4 -> mt-2)，按钮跟时间同步上移 */}
-            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-2 mb-2">
+            {/* 核心修复2：强制把发布时间往上提 (mt-1) */}
+            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-1 mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
                     <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] p-1.5 transition-colors">
@@ -413,9 +414,9 @@ return (
                 </div>
             </div>
 
-            {/* 点赞评论区域 - 统一 bg-[#f0f0f0] */}
+            {/* 评论区板块 - 统一 bg-[#f0f0f0] */}
             {(likeNames.length > 0 || comments.length > 0) && (
-                <div className="feed-feedback-section ml-[52px] w-[calc(100%-52px)] flex flex-col mb-3 mt-1 bg-[#f0f0f0] rounded-[6px] pt-2 px-3 pb-1.5">
+                <div className="feed-feedback-section ml-[52px] w-[calc(100%-52px)] flex flex-col mb-3 mt-2 bg-[#f0f0f0] rounded-[6px] pt-2 px-3 pb-1.5">
                     {likeNames.length > 0 && (
                         <div className={`feed-like-summary flex items-start gap-1 ts-15 leading-[1.55] text-[var(--c-text-title)] ${comments.length > 0 ? 'border-b border-[#ebebeb] pb-2 mb-1' : 'pb-1'}`}>
                             <span className="feed-like-summary-icon shrink-0 mt-[4px] mr-1 text-[#576b95]"><Heart size={15} strokeWidth={1.75} fill="none" /></span>
@@ -432,31 +433,29 @@ return (
 
                                 return (
                                     <div key={root.id} className="feed-comment feed-comment-root w-full">
-                                        <div className="feed-comment-row flex items-start gap-2 cursor-pointer" onClick={(event) => handleCommentPress(root, event)}>
-                                            <div className="feed-comment-avatar feed-comment-avatar-root w-[32px] h-[32px] rounded-[6px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
+                                        <div className="feed-comment-row flex items-start gap-2 cursor-pointer relative" onClick={(event) => handleCommentPress(root, event)}>
+                                            <div className="feed-comment-avatar feed-comment-avatar-root w-[32px] h-[32px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                                                 {rootAvatar ? <img src={rootAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                             </div>
-                                            {/* 移除回复按钮和三点按钮，只需点击评论内容区域即可弹出折叠菜单 */}
-                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words relative cursor-pointer" onClick={(e) => {
+                                            
+                                            {/* 核心修复3：时间在右上角 */}
+                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words cursor-pointer" onClick={(e) => {
                                                 e.stopPropagation();
                                                 setCommentMoreMenuId(prev => prev === root.id ? null : root.id);
                                             }}>
-                                                <div className="feed-comment-main flex flex-col gap-[1px]">
+                                                <div className="flex justify-between items-start w-full">
                                                     <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{rootName}</div>
-                                                    <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)]">
-                                                        {rootReplyName && (<><span className="feed-comment-reply-prefix">回复 </span><span className="feed-comment-reply-target ts-14 font-normal text-[#576b95]">{rootReplyName}</span><span className="feed-comment-reply-colon">：</span></>)}
-                                                        <MomentInlineBilingualText text={root.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
-                                                    </div>
+                                                    <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(root.createdAt)}</span>
                                                 </div>
                                                 
-                                                {/* 底部只剩一个靠右的时间（右上角） */}
-                                                <div className="feed-comment-meta flex items-center mt-[2px] ts-13 text-[var(--c-icon)] w-full">
-                                                    <span className="feed-comment-time whitespace-nowrap ml-auto">{formatTimeAgo(root.createdAt)}</span>
+                                                <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)] mt-[1px]">
+                                                    {rootReplyName && (<><span className="feed-comment-reply-prefix">回复 </span><span className="feed-comment-reply-target ts-14 font-normal text-[#576b95]">{rootReplyName}</span><span className="feed-comment-reply-colon">：</span></>)}
+                                                    <MomentInlineBilingualText text={root.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
                                                 </div>
 
-                                                {/* 点击内容弹出的折叠菜单（包含回复、编辑、删除） */}
+                                                {/* 点击任意位置弹出的折叠菜单 */}
                                                 {commentMoreMenuId === root.id && (
-                                                    <div className="absolute bottom-full right-0 mb-1 z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
+                                                    <div className="absolute -bottom-2 right-0 translate-y-full z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); handleReply(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">回复</button>
                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
@@ -471,30 +470,27 @@ return (
                                                     const replyAvatar = getAuthorAvatar(reply.authorType, reply.authorId);
                                                     const replyTargetName = reply.replyToAuthorId ? getAuthorName(reply.replyToAuthorType || "character", reply.replyToAuthorId, reply.replyToAuthorName) : null;
                                                     return (
-                                                        <div key={reply.id} className="feed-comment feed-comment-child flex items-start gap-2 cursor-pointer" onClick={(event) => handleCommentPress(reply, event)}>
+                                                        <div key={reply.id} className="feed-comment feed-comment-child flex items-start gap-2 cursor-pointer relative" onClick={(event) => handleCommentPress(reply, event)}>
                                                             <div className="feed-comment-avatar feed-comment-avatar-child w-[22px] h-[22px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center mt-[2px]">
                                                                 {replyAvatar ? <img src={replyAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                                             </div>
-                                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words relative cursor-pointer" onClick={(e) => {
+                                                            
+                                                            <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words cursor-pointer" onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id);
                                                             }}>
-                                                                <div className="feed-comment-main flex flex-col gap-[1px]">
+                                                                <div className="flex justify-between items-start w-full">
                                                                     <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{replyName}</div>
-                                                                    <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)]">
-                                                                        {replyTargetName && (<><span className="feed-comment-reply-prefix">回复 </span><span className="feed-comment-reply-target ts-14 font-normal text-[#576b95]">{replyTargetName}</span><span className="feed-comment-reply-colon">：</span></>)}
-                                                                        <MomentInlineBilingualText text={reply.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
-                                                                    </div>
+                                                                    <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(reply.createdAt)}</span>
                                                                 </div>
                                                                 
-                                                                {/* 子评论时间靠右 */}
-                                                                <div className="feed-comment-meta flex items-center mt-[2px] ts-13 text-[var(--c-icon)] w-full">
-                                                                    <span className="feed-comment-time whitespace-nowrap ml-auto">{formatTimeAgo(reply.createdAt)}</span>
+                                                                <div className="feed-comment-body ts-15 leading-[1.55] text-[var(--c-text-title)] mt-[1px]">
+                                                                    {replyTargetName && (<><span className="feed-comment-reply-prefix">回复 </span><span className="feed-comment-reply-target ts-14 font-normal text-[#576b95]">{replyTargetName}</span><span className="feed-comment-reply-colon">：</span></>)}
+                                                                    <MomentInlineBilingualText text={reply.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
                                                                 </div>
 
-                                                                {/* 子评论点击内容弹出的折叠菜单 */}
                                                                 {commentMoreMenuId === reply.id && (
-                                                                    <div className="absolute bottom-full right-0 mb-1 z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
+                                                                    <div className="absolute -bottom-2 right-0 translate-y-full z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
                                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); handleReply(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">回复</button>
                                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); openCommentEditor(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">编辑</button>
                                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); setDeleteCommentTarget(reply); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#576b95] hover:bg-gray-50">删除</button>
