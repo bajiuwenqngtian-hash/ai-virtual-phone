@@ -256,7 +256,8 @@ const handleRegeneratePhotoWithPrompt = useCallback(() => {
 
 return (
     <div data-moment-post-id={post.id} className="feed-post relative border-b-[2.5px] border-[var(--c-card-border)] pb-5 mb-5 w-full bg-transparent px-4 pt-2">
-        <div className="feed-post-header flex items-center gap-3 mb-3">
+        {/* 【核心修复1】：改为 items-start 实现头部完全顶端对齐，用 mt-[2px] 消除行高误差 */}
+        <div className="feed-post-header flex items-start gap-3 mb-1">
             <div className="feed-post-author-avatar w-[40px] h-[40px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                 {authorAvatar ? (
                     <img src={authorAvatar} alt="" className="feed-post-author-avatar-image w-full h-full object-cover" />
@@ -264,8 +265,8 @@ return (
                     <MomentDefaultAvatar />
                 )}
             </div>
-            <div className="feed-post-author flex-1 flex items-center gap-1">
-                <span className="feed-post-author-name ts-16 font-bold text-[#576b95]">{authorName}</span>
+            <div className="feed-post-author flex-1 flex items-start gap-1">
+                <span className="feed-post-author-name ts-16 font-bold text-[#576b95] mt-[2px]">{authorName}</span>
             </div>
             <button
                 className="feed-post-more-btn p-1 text-white opacity-0 hover:opacity-100 transition-opacity"
@@ -294,23 +295,22 @@ return (
             )}
         </div>
 
-        {/* 核心修复1：强制压缩正文间距（mt-1 mb-1），去除可能导致空白的元素 */}
+        {/* 【核心修复2】：强制减小文案到名字的距离 (mt-[2px] mb-[2px]) */}
         {post.content && (
-            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-1 mb-1 w-[calc(100%-52px)]">
+            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-[2px] mb-[2px] w-[calc(100%-52px)]">
                 <BilingualTextBlock text={post.content} mode="plain" defaultExpanded={defaultTranslationExpanded} />
             </div>
         )}
 
         {post.location && (
-            <div className="feed-post-location mb-2 text-[var(--c-icon)] opacity-80 flex items-center ts-12 ml-[52px]">
+            <div className="feed-post-location mb-[2px] text-[var(--c-icon)] opacity-80 flex items-center ts-12 ml-[52px]">
                 <MapPin size={12} strokeWidth={1.75} className="mr-1" />
                 {post.location}
             </div>
         )}
 
-        {/* 修复图片布局，没有图片时不产生无用边距 */}
         {resolvedPhotoUrl || fallbackPhotoDescription ? (
-            <div className="feed-post-media mb-4 w-[calc(100%-52px)] flex flex-col gap-2 ml-[52px]">
+            <div className="feed-post-media mb-3 w-[calc(100%-52px)] flex flex-col gap-2 ml-[52px]">
                 {resolvedPhotoUrl && (
                     <MediaImageWithPreview
                         url={resolvedPhotoUrl}
@@ -397,8 +397,8 @@ return (
                 <ConfirmDialog title="删除这条评论？" message={(() => { const descendantCount = getCommentDescendantCount(deleteCommentTarget.id); return descendantCount > 0 ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。` : "删除后无法恢复。"; })()} icon={Trash2} variant="danger" confirmLabel="删除" cancelLabel="取消" onConfirm={handleConfirmCommentDelete} onCancel={() => setDeleteCommentTarget(null)} />
             )}
 
-            {/* 核心修复2：强制把发布时间往上提 (mt-1) */}
-            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-1 mb-2">
+            {/* 【核心修复3】：强制缩减发布时间距离，从 mt-1 变成 mt-[2px] */}
+            <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-[2px] mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
                     <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] p-1.5 transition-colors">
@@ -414,7 +414,7 @@ return (
                 </div>
             </div>
 
-            {/* 评论区板块 - 统一 bg-[#f0f0f0] */}
+            {/* 评论区板块 */}
             {(likeNames.length > 0 || comments.length > 0) && (
                 <div className="feed-feedback-section ml-[52px] w-[calc(100%-52px)] flex flex-col mb-3 mt-2 bg-[#f0f0f0] rounded-[6px] pt-2 px-3 pb-1.5">
                     {likeNames.length > 0 && (
@@ -438,13 +438,13 @@ return (
                                                 {rootAvatar ? <img src={rootAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                             </div>
                                             
-                                            {/* 核心修复3：时间在右上角 */}
+                                            {/* 【核心修复4】：在评论区，通过 mt-[2px] 强制让名字和头像顶端平行对齐 */}
                                             <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words cursor-pointer" onClick={(e) => {
                                                 e.stopPropagation();
                                                 setCommentMoreMenuId(prev => prev === root.id ? null : root.id);
                                             }}>
                                                 <div className="flex justify-between items-start w-full">
-                                                    <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{rootName}</div>
+                                                    <span className="feed-comment-author font-bold text-[#576b95] opacity-100 mt-[2px]">{rootName}</span>
                                                     <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(root.createdAt)}</span>
                                                 </div>
                                                 
@@ -453,7 +453,6 @@ return (
                                                     <MomentInlineBilingualText text={root.content} defaultExpanded={defaultTranslationExpanded} textColor="var(--c-text-title)" translationColor="var(--c-text-title)" />
                                                 </div>
 
-                                                {/* 点击任意位置弹出的折叠菜单 */}
                                                 {commentMoreMenuId === root.id && (
                                                     <div className="absolute -bottom-2 right-0 translate-y-full z-[99] bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-20 text-center">
                                                         <button onClick={(e) => { e.stopPropagation(); setCommentMoreMenuId(null); handleReply(root); }} className="block w-full text-left px-3 py-1.5 text-xs text-[#333] hover:bg-gray-50">回复</button>
@@ -480,7 +479,7 @@ return (
                                                                 setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id);
                                                             }}>
                                                                 <div className="flex justify-between items-start w-full">
-                                                                    <div className="feed-comment-author font-bold text-[#576b95] opacity-100">{replyName}</div>
+                                                                    <span className="feed-comment-author font-bold text-[#576b95] opacity-100 mt-[2px]">{replyName}</span>
                                                                     <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(reply.createdAt)}</span>
                                                                 </div>
                                                                 
