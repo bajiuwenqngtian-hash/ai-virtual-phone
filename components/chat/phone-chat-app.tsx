@@ -231,27 +231,57 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                 {activeTab === "me" && <UserProfilePanel onClose={() => setActiveTab("messages")} />}
             </div>
 
-            {/* 微信风格底部导航栏 */}
+                        {/* 微信风格底部导航栏 */}
             {!activeSession && !activeMascot && !hideTabBar && (
                 <nav className="bg-[#F7F7F7] border-t border-[#D9D9D9] shrink-0 flex justify-around items-center h-[58px]" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}>
-                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("messages")}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeTab === "messages" ? "#07C160" : "#000000"} strokeWidth="1.8"><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M21 12c0 4.97-4.03 9-9 9-1.58 0-3.07-.41-4.37-1.13l-3.66 1.22 1.26-3.54A8.95 8.95 0 0 1 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9z" /></svg>
-                        <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#888]"}`}>微信</span>
+                    
+                    <button className="flex flex-col items-center gap-1 w-1/4" onClick={() => setActiveTab("messages")}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill={activeTab === "messages" ? "#07C160" : "none"} stroke={activeTab === "messages" ? "none" : "#111111"} strokeWidth={activeTab === "messages" ? "0" : "1.2"}>
+                            {activeTab === "messages" ? (
+                                <path d="M12 3c5.5 0 10 3.8 10 8.5 0 2.7-1.5 5.1-3.9 6.7.2 1.3 1.1 2.8 1.1 2.8s-2.1-.2-3.8-1.2c-1.1.3-2.2.5-3.4.5-5.5 0-10-3.8-10-8.5S6.5 3 12 3z"/>
+                            ) : (
+                                <path d="M12 3c5.5 0 10 3.8 10 8.5 0 2.7-1.5 5.1-3.9 6.7.2 1.3 1.1 2.8 1.1 2.8s-2.1-.2-3.8-1.2c-1.1.3-2.2.5-3.4.5-5.5 0-10-3.8-10-8.5S6.5 3 12 3z"/>
+                            )}
+                        </svg>
+                        <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#111111]"}`}>微信</span>
                     </button>
-                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("contacts")}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeTab === "contacts" ? "#07C160" : "#000000"} strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 5.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 21v-2a4 4 0 0 0-3-3.87" /></svg>
-                        <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#888]"}`}>通讯录</span>
+
+                    <button className="flex flex-col items-center gap-1 w-1/4" onClick={() => setActiveTab("contacts")}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill={activeTab === "contacts" ? "#07C160" : "none"} stroke={activeTab === "contacts" ? "none" : "#111111"} strokeWidth={activeTab === "contacts" ? "0" : "1.2"}>
+                            {activeTab === "contacts" ? (
+                                <path d="M10 20v-2c0-2.2 1.8-4 4-4h-4c-3.3 0-6 2.7-6 6v2h10zM10 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zm11 1h-6v-2h6v2zm0-4h-4V7h4v2zm0 8h-4v-2h4v2z"/>
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14 18v-1c0-2.2-1.8-4-4-4H8c-2.2 0-4 1.8-4 4v1m6-6c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm11 1h-5m5-4h-3m3 8h-3"/>
+                            )}
+                        </svg>
+                        <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#111111]"}`}>通讯录</span>
                     </button>
-                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("feeds")}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeTab === "feeds" ? "#07C160" : "#000000"} strokeWidth="1.8"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-8a1 1 0 1 1 2 0v4a1 1 0 1 1-2 0zm0-4a1 1 0 1 1 2 0 1 1 0 1 1-2 0z" /></svg>
-                        <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#888]"}`}>发现</span>
+
+                    <button className="flex flex-col items-center gap-1 w-1/4" onClick={() => setActiveTab("feeds")}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill={activeTab === "feeds" ? "#07C160" : "none"} stroke={activeTab === "feeds" ? "none" : "#111111"} strokeWidth={activeTab === "feeds" ? "0" : "1.2"}>
+                            {activeTab === "feeds" ? (
+                                <path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm-3.53-7.53l7.07-2.12-2.12 7.07-7.07 2.12 2.12-7.07z"/>
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm-1.89-6.11l6.02-1.8-1.8 6.02-6.02 1.8 1.8-6.02z"/>
+                            )}
+                        </svg>
+                        <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#111111]"}`}>发现</span>
                     </button>
-                    <button className="flex flex-col items-center gap-0.5 w-1/4" onClick={() => setActiveTab("me")}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={activeTab === "me" ? "#07C160" : "#000000"} strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /></svg>
-                        <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#888]"}`}>我</span>
+
+                    <button className="flex flex-col items-center gap-1 w-1/4" onClick={() => setActiveTab("me")}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill={activeTab === "me" ? "#07C160" : "none"} stroke={activeTab === "me" ? "none" : "#111111"} strokeWidth={activeTab === "me" ? "0" : "1.2"}>
+                            {activeTab === "me" ? (
+                                <path d="M12 14c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6zm0-2c3.3 0 6-2.7 6-6s-2.7-6-6-6-6 2.7-6 6 2.7 6 6 6z"/>
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-1c0-3.3-2.7-6-6-6H10c-3.3 0-6 2.7-6 6v1m8-7c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+                            )}
+                        </svg>
+                        <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#111111]"}`}>我</span>
                     </button>
+
                 </nav>
             )}
+
 
             {/* 聊天室弹窗 */}
             {[...visitedSessions.values()].map(sess => (
