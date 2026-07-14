@@ -559,7 +559,8 @@ function MascotSessionItem({
                 <img src={avatarUrl} className="w-full h-full object-contain pointer-events-none rounded-full p-[2px]" alt="" />
                 <span className="minimal-online-dot" />
             </div>
-                        <div className="flex-1 overflow-hidden h-[64px] flex flex-col justify-center gap-[2px] pb-[6px] border-b border-[#F5F5F5]">
+                        <div className="flex-1 overflow-hidden h-[62px] flex flex-col justify-center gap-[2px] border-b border-[#F5F5F5]">
+
                 <div className="flex justify-between items-center">
                     <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">{name}</span>
                     <span className="text-[11px] text-[#B2B2B2] font-normal">AI</span>
@@ -664,7 +665,8 @@ function SessionItem({ session, onSelect, isPinned }: { session: ChatSession, on
                     <span className="minimal-online-dot" />
                 </div>
             )}
-                        <div className="flex-1 overflow-hidden h-[64px] flex flex-col justify-center gap-[2px] pb-[6px] border-b border-[#F5F5F5]">
+            <div className="flex-1 overflow-hidden h-[62px] flex flex-col justify-center gap-[2px] border-b border-[#F5F5F5]">
+
                 <div className="flex justify-between items-center">
                     <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">
                         {isGroup ? (session.groupName || "群聊") : (session.alias || character?.name || `User_${session.contactId.slice(-4)}`)}
