@@ -256,8 +256,8 @@ const handleRegeneratePhotoWithPrompt = useCallback(() => {
 
 return (
     <div data-moment-post-id={post.id} className="feed-post relative border-b-[2.5px] border-[var(--c-card-border)] pb-5 mb-5 w-full bg-transparent px-4 pt-2">
-        {/* 【核心修复1】：改为 items-start 实现头部完全顶端对齐，用 mt-[2px] 消除行高误差 */}
-        <div className="feed-post-header flex items-start gap-3 mb-1">
+        {/* 【核心修复1】：把 mb-1 改为 mb-0，去掉行与行之间多余的缝隙 */}
+        <div className="feed-post-header flex items-start gap-3 mb-0">
             <div className="feed-post-author-avatar w-[40px] h-[40px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                 {authorAvatar ? (
                     <img src={authorAvatar} alt="" className="feed-post-author-avatar-image w-full h-full object-cover" />
@@ -295,9 +295,9 @@ return (
             )}
         </div>
 
-        {/* 【核心修复2】：强制减小文案到名字的距离 (mt-[2px] mb-[2px]) */}
+        {/* 【核心修复2】：将 mt-[2px] 强制改为 mt-0，严格压缩名字到文案的距离 */}
         {post.content && (
-            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-[2px] mb-[2px] w-[calc(100%-52px)]">
+            <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-0 mb-[2px] w-[calc(100%-52px)]">
                 <BilingualTextBlock text={post.content} mode="plain" defaultExpanded={defaultTranslationExpanded} />
             </div>
         )}
@@ -397,11 +397,12 @@ return (
                 <ConfirmDialog title="删除这条评论？" message={(() => { const descendantCount = getCommentDescendantCount(deleteCommentTarget.id); return descendantCount > 0 ? `这条评论下还有 ${descendantCount} 条回复，删除后会一并删除。` : "删除后无法恢复。"; })()} icon={Trash2} variant="danger" confirmLabel="删除" cancelLabel="取消" onConfirm={handleConfirmCommentDelete} onCancel={() => setDeleteCommentTarget(null)} />
             )}
 
-            {/* 【核心修复3】：强制缩减发布时间距离，从 mt-1 变成 mt-[2px] */}
+            {/* 底部时间与菜单行 */}
             <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-[2px] mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
-                    <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] p-1.5 transition-colors">
+                    {/* 【核心修复3】：灰底按钮从正方形改成 px-3 py-1 的长方形 */}
+                    <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] px-3 py-1 transition-colors">
                         <MoreHorizontal size={20} strokeWidth={2} className="text-[#576b95]" />
                     </button>
                     {showBottomMenu && (
@@ -420,7 +421,8 @@ return (
                     {likeNames.length > 0 && (
                         <div className={`feed-like-summary flex items-start gap-1 ts-15 leading-[1.55] text-[var(--c-text-title)] ${comments.length > 0 ? 'border-b border-[#ebebeb] pb-2 mb-1' : 'pb-1'}`}>
                             <span className="feed-like-summary-icon shrink-0 mt-[4px] mr-1 text-[#576b95]"><Heart size={15} strokeWidth={1.75} fill="none" /></span>
-                            <span className="feed-like-summary-text opacity-90 font-normal">{likeNames.join("、")}</span>
+                            {/* 【核心修复4】：点赞的名字改成深蓝色粗体 font-bold text-[#576b95] */}
+                            <span className="feed-like-summary-text font-bold text-[#576b95]">{likeNames.join("、")}</span>
                         </div>
                     )}
 
@@ -438,7 +440,6 @@ return (
                                                 {rootAvatar ? <img src={rootAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                             </div>
                                             
-                                            {/* 【核心修复4】：在评论区，通过 mt-[2px] 强制让名字和头像顶端平行对齐 */}
                                             <div className="feed-comment-content min-w-0 flex-1 ts-14 leading-[1.8] break-words cursor-pointer" onClick={(e) => {
                                                 e.stopPropagation();
                                                 setCommentMoreMenuId(prev => prev === root.id ? null : root.id);
