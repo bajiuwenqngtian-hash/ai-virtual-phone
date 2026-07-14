@@ -742,7 +742,7 @@ function SocialPostWidget({ config, widgetId, onConfigChange, preview }: any) {
   };
 
   return (
-    <div className="wg-sp-card w-full h-full bg-white/90 backdrop-blur-lg rounded-3xl border border-white/60 shadow-lg flex flex-col p-4 box-border overflow-hidden">
+<div className="w-full h-full bg-white/90 backdrop-blur-lg rounded-3xl border border-white/60 shadow-lg flex flex-col p-4 box-border overflow-hidden">
       {avatarInput}
       {postInput}
       
