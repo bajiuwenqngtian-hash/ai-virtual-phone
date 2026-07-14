@@ -231,10 +231,11 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                 {activeTab === "me" && <UserProfilePanel onClose={() => setActiveTab("messages")} />}
             </div>
 
-                                    {/* 微信风格底部导航栏 */}
+                                                {/* 微信风格底部导航栏 */}
             {!activeSession && !activeMascot && !hideTabBar && (
                 <nav className="bg-[#F7F7F7] border-t border-[#D9D9D9] shrink-0 flex justify-around items-center h-[58px]" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}>
                     
+                    {/* 1. 微信 (保持原样) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("messages")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "messages" ? (
@@ -246,40 +247,46 @@ export const PhoneChatApp = memo(function PhoneChatApp({ onClose, initialSession
                         <span className={`text-[10px] font-medium ${activeTab === "messages" ? "text-[#07C160]" : "text-[#111111]"}`}>微信</span>
                     </button>
 
+                    {/* 2. 通讯录 (纯正钝角衣架 + 竖椭圆头 + 实心纯黑三道杠) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("contacts")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "contacts" ? (
-                                <path d="M13 21v-2c0-2.2-1.8-4-4-4H5c-2.2 0-4 1.8-4 4v2h12zM9 13c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zM16 9h6v1.5h-6zM16 13.5h6v1.5h-6zM16 18h6v1.5h-6z" fill="#07C160" />
+                                <path d="M 6.5 9 A 2.5 3.5 0 1 1 9.5 9 L 15 17 A 1.5 1.5 0 0 1 13.5 18.5 H 2.5 A 1.5 1.5 0 0 1 1 17 Z M 14 7.5 h 8 v 1.5 h -8 z M 16 11.5 h 6 v 1.5 h -6 z M 18 15.5 h 4 v 1.5 h -4 z" fill="#07C160" />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 21v-2c0-2.2-1.8-4-4-4H5c-2.2 0-4 1.8-4 4v2M9 13c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zM16 9h6M16 13.5h6M16 18h6" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                <g>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M 6.5 9 A 2.5 3.5 0 1 1 9.5 9 L 15 17 A 1.5 1.5 0 0 1 13.5 18.5 H 2.5 A 1.5 1.5 0 0 1 1 17 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                    <path d="M 14 7.5 h 8 v 1.2 h -8 z M 16 11.5 h 6 v 1.2 h -6 z M 18 15.5 h 4 v 1.2 h -4 z" fill="#111111" />
+                                </g>
                             )}
                         </svg>
                         <span className={`text-[10px] font-medium ${activeTab === "contacts" ? "text-[#07C160]" : "text-[#111111]"}`}>通讯录</span>
                     </button>
 
+                    {/* 3. 发现 (拉长的平行四边形) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("feeds")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "feeds" ? (
                                 <>
                                     <circle cx="12" cy="12" r="10" fill="#07C160" />
-                                    <path d="M8.5 15.5l2-5 5-2-2 5-5 2z" fill="#FFFFFF" />
+                                    <path d="M7.8 16.2l2.8-5.6 5.6-2.8-2.8 5.6-5.6 2.8z" fill="#FFFFFF" />
                                 </>
                             ) : (
                                 <>
                                     <circle cx="12" cy="12" r="9.5" fill="none" stroke="#111111" strokeWidth="1.2" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 15.5l2-5 5-2-2 5-5 2z" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.8 16.2l2.8-5.6 5.6-2.8-2.8 5.6-5.6 2.8z" fill="none" stroke="#111111" strokeWidth="1.2" />
                                 </>
                             )}
                         </svg>
                         <span className={`text-[10px] font-medium ${activeTab === "feeds" ? "text-[#07C160]" : "text-[#111111]"}`}>发现</span>
                     </button>
 
+                    {/* 4. 我 (纯正钝角居中大衣架 + 竖椭圆头) */}
                     <button className="flex flex-col items-center gap-[2px] w-1/4" onClick={() => setActiveTab("me")}>
                         <svg width="26" height="26" viewBox="0 0 24 24">
                             {activeTab === "me" ? (
-                                <path d="M19 21v-2c0-3.3-2.7-6-6-6H11c-3.3 0-6 2.7-6 6v2h14zM12 13c3.3 0 6-2.7 6-6s-2.7-6-6-6-6 2.7-6 6 2.7 6 6 6z" fill="#07C160" />
+                                <path d="M 10.5 9 A 2.5 3.5 0 1 1 13.5 9 L 20 17 A 1.5 1.5 0 0 1 18.5 18.5 H 5.5 A 1.5 1.5 0 0 1 4 17 Z" fill="#07C160" />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21v-2c0-3.3-2.7-6-6-6H11c-3.3 0-6 2.7-6 6v2M12 13c3.3 0 6-2.7 6-6s-2.7-6-6-6-6 2.7-6 6 2.7 6 6 6z" fill="none" stroke="#111111" strokeWidth="1.2" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M 10.5 9 A 2.5 3.5 0 1 1 13.5 9 L 20 17 A 1.5 1.5 0 0 1 18.5 18.5 H 5.5 A 1.5 1.5 0 0 1 4 17 Z" fill="none" stroke="#111111" strokeWidth="1.2" />
                             )}
                         </svg>
                         <span className={`text-[10px] font-medium ${activeTab === "me" ? "text-[#07C160]" : "text-[#111111]"}`}>我</span>
