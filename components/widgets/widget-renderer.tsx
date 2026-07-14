@@ -26,7 +26,7 @@ export function WidgetRenderer({ widget, preview, onConfigChange }: WidgetRender
   const [rows, cols] = WIDGET_SIZE_CELLS[widget.size];
   const sizeClass = `widget-${widget.size}`;
   const isKawaii = ["kawaiiCat", "kawaiiBubble", "kawaiiWeather", "kawaiiDate", "kawaiiBattery", "kawaiiMusicIcon"].includes(widget.type);
-  const isFullBleed = ["kawaiiMusicPlayer", "iosMenu", "mySpace", "socialPost", "photoViewer", "largeTime", "moodPill"].includes(widget.type);
+const isFullBleed = ["kawaiiMusicPlayer", "iosMenu", "photoViewer", "largeTime", "moodPill"].includes(widget.type);
 
   const catalogEntry = WIDGET_CATALOG.find((e) => e.type === widget.type);
   const isFreestyle = catalogEntry?.track === "freestyle" || widget.type.startsWith("diy-");
