@@ -122,13 +122,20 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                 <div className="w-8 h-8 cursor-pointer" onClick={onCloseApp}></div>
                 <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
                 <div className="flex items-center gap-1 relative">
-                    <button onClick={() => { setIsSearchActive(!isSearchActive); setShowPlusMenu(false); }} className="w-10 h-10 flex items-center justify-center text-[#181818]">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                        <button onClick={() => { setIsSearchActive(!isSearchActive); setShowPlusMenu(false); }} className="w-10 h-10 flex items-center justify-center text-[#181818]">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                            <circle cx="10.5" cy="10.5" r="7.5"/>
+                            <path d="M16 16L22 22" strokeLinecap="round"/>
+                        </svg>
                     </button>
                     <span className="relative" ref={plusMenuRef}>
                         <button onClick={() => setShowPlusMenu(!showPlusMenu)} className="w-10 h-10 flex items-center justify-center text-[#181818]">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7.5V16.5M7.5 12H16.5" strokeLinecap="round"/>
+                            </svg>
                         </button>
+
                         
                         {/* 保留原始逻辑的下拉悬浮窗 */}
                         {showPlusMenu && (
@@ -552,11 +559,12 @@ function MascotSessionItem({
                 <img src={avatarUrl} className="w-full h-full object-contain pointer-events-none rounded-full p-[2px]" alt="" />
                 <span className="minimal-online-dot" />
             </div>
-            <div className="flex-1 overflow-hidden h-[48px] flex flex-col justify-center gap-1 border-b border-[#F5F5F5]">
+                        <div className="flex-1 overflow-hidden h-[64px] flex flex-col justify-center gap-[2px] pb-[6px] border-b border-[#F5F5F5]">
                 <div className="flex justify-between items-center">
                     <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">{name}</span>
-                    <span className="ts-12 text-[#B2B2B2] font-medium">AI</span>
+                    <span className="text-[11px] text-[#B2B2B2] font-normal">AI</span>
                 </div>
+
                 <div className="flex justify-between items-center gap-2">
                     <span className="ts-13 text-[#999] truncate font-normal">
                         {isThinking ? "正在思考..." : preview}
@@ -656,15 +664,16 @@ function SessionItem({ session, onSelect, isPinned }: { session: ChatSession, on
                     <span className="minimal-online-dot" />
                 </div>
             )}
-            <div className="flex-1 overflow-hidden h-[48px] flex flex-col justify-center gap-1 border-b border-[#F5F5F5]">
+                        <div className="flex-1 overflow-hidden h-[64px] flex flex-col justify-center gap-[2px] pb-[6px] border-b border-[#F5F5F5]">
                 <div className="flex justify-between items-center">
                     <span className="ts-16 font-medium text-[var(--c-text-title)] truncate">
                         {isGroup ? (session.groupName || "群聊") : (session.alias || character?.name || `User_${session.contactId.slice(-4)}`)}
                     </span>
-                    <span className="ts-12 text-[#B2B2B2] font-normal">
+                    <span className="text-[11px] text-[#B2B2B2] font-normal">
                         {formatChatUiTime(displayTime)}
                     </span>
                 </div>
+
                 <div className="flex justify-between items-center gap-2">
                     <span className="ts-13 text-[#999] truncate font-normal">
                         {preview || getLastNonEmptyPreview(session.id)}
