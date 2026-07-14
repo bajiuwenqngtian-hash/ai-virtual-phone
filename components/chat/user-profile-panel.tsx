@@ -110,6 +110,7 @@ function ProfileSettingsSliderItem({
         </div>
     );
 }
+// ----- 此处开始是第 2 块 -----
 
 function readBrowserNotificationPermissionHint(): string {
     if (typeof window === "undefined") return "当前浏览器权限：未知（服务端渲染）";
@@ -129,7 +130,7 @@ function isBrowserNotificationGranted(): boolean {
 }
 
 /* ══════════════════════════════════════════
-   Main export
+   Main export (已按照你的要求修改样式)
    ══════════════════════════════════════════ */
 export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) {
     const [showFollowUpEditor, setShowFollowUpEditor] = useState(false);
@@ -174,7 +175,7 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
             setUserStats({
                 chats: contactsCount,
                 moments: userPostsCount,
-                visitors: 1234 + contactsCount * 17 + userPostsCount * 43 // simple deterministic mock equation
+                visitors: 1234 + contactsCount * 17 + userPostsCount * 43
             });
         } catch (e) { }
     }, []);
@@ -193,14 +194,12 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
 
     const handleNotificationToggle = async (enabled: boolean) => {
         if (notifChecking) return;
-
         if (!enabled) {
             setNotifEnabled(false);
             saveChatAppSettings({ ...loadChatAppSettings(), browserNotificationsEnabled: false });
             setNotifHint(`已关闭。${readBrowserNotificationPermissionHint()}`);
             return;
         }
-
         setNotifChecking(true);
         setNotifHint("正在检查浏览器通知权限...");
         try {
@@ -225,43 +224,21 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
         saveChatAppSettings({ ...loadChatAppSettings(), enterToSendEnabled: enabled });
     };
 
-    if (showFollowUpEditor) {
-        return <FollowUpSettingsEditor onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowFollowUpEditor(false); }} />;
-    }
-    if (showApiLog) {
-        return <ApiLogViewer onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowApiLog(false); }} />;
-    }
-    if (showCSSEditor) {
-        return <ChatCSSEditor onBack={() => { setShowCSSEditor(false); }} />;
-    }
-    if (showStickerManager) {
-        return <StickerManager onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowStickerManager(false); }} />;
-    }
-    if (showMomentsSettings) {
-        return <InlineMomentsSettings onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowMomentsSettings(false); }} />;
-    }
-    if (showWalletPanel) {
-        return <WalletPanel onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowWalletPanel(false); }} />;
-    }
+    if (showFollowUpEditor) return <FollowUpSettingsEditor onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowFollowUpEditor(false); }} />;
+    if (showApiLog) return <ApiLogViewer onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowApiLog(false); }} />;
+    if (showCSSEditor) return <ChatCSSEditor onBack={() => { setShowCSSEditor(false); }} />;
+    if (showStickerManager) return <StickerManager onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowStickerManager(false); }} />;
+    if (showMomentsSettings) return <InlineMomentsSettings onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowMomentsSettings(false); }} />;
+    if (showWalletPanel) return <WalletPanel onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); setShowWalletPanel(false); }} />;
 
     return (
         <>
             <style>{`
                 .user-profile-page-root {
-                    background: var(--c-page-body-bg) !important;
+                    background: #ffffff !important;
                 }
                 .user-profile-page-root::before {
-                    content: "";
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 300px;
-                    pointer-events: none;
-                    background: linear-gradient(135deg, color-mix(in srgb, #246bfd 12%, transparent) 0%, color-mix(in srgb, var(--c-success) 8%, transparent) 100%);
-                    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-                    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-                    z-index: 0;
+                    display: none !important;
                 }
                 .user-profile-page-root .page-header {
                     background: transparent !important;
@@ -288,10 +265,10 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
                     
                     {/* User Info & Stats Block */}
                     <div className="flex items-center gap-5 px-6 pt-2 pb-4">
-                        {/* Avatar */}
+                        {/* 步骤2：修改为方圆形头像，并去掉了阴影的蓝色 */}
                         <div className="relative shrink-0">
-                            <div className="w-[84px] h-[84px] rounded-full overflow-hidden bg-[var(--c-card)] border-2 border-white/50 shadow-sm flex items-center justify-center relative"
-                                 style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+                            <div className="w-[84px] h-[84px] rounded-[18px] overflow-hidden bg-[#f5f5f5] border-2 border-white shadow-sm flex items-center justify-center relative"
+                                 style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
                                 {identity?.avatarUrl ? (
                                     <img src={identity.avatarUrl} alt="User Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -301,18 +278,30 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
                         </div>
 
                         {/* Info & Stats */}
-                        <div className="flex flex-col flex-1 justify-center gap-2">
-                            {/* Top Row: Name and Identity Badge */}
+                        <div className="flex flex-col flex-1 justify-center gap-1.5">
+                            {/* 第一行：名字和在线状态 */}
                             <div className="flex items-center justify-between w-full mb-0.5">
                                 <div className="ts-22 font-bold text-[var(--c-text-title)] leading-none truncate">{identity?.name || "未设置身份"}</div>
-                                <div className="flex items-center gap-1.5 ts-11 font-medium bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-full shrink-0 text-[var(--c-text)] opacity-80">
+                                <div className="flex items-center gap-1.5 ts-11 font-medium bg-gray-100 px-2 py-0.5 rounded-full shrink-0 text-gray-500">
                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
                                     手机在线
                                 </div>
                             </div>
 
-                            {/* Data Stats inline */}
-                            <div className="flex items-center justify-between w-full ts-12 text-[var(--c-text-title)] font-medium mt-0.5">
+                            {/* 步骤3：【新增】微信号栏目 */}
+                            <div className="flex items-center gap-1 text-[var(--c-text)] ts-12 opacity-70 mt-0.5">
+                                <span>微信号：</span>
+                                <span 
+                                    className="font-medium text-gray-500 cursor-text px-1 rounded hover:bg-gray-100 transition"
+                                    contentEditable={true} 
+                                    suppressContentEditableWarning={true}
+                                >
+                                    Hakuna-Matata962
+                                </span>
+                            </div>
+
+                            {/* 数据统计 */}
+                            <div className="flex items-center justify-between w-full ts-12 text-[var(--c-text-title)] font-medium mt-1.5">
                                 <span className="opacity-80">Chatting <span className="font-bold opacity-100">{userStats.chats}</span></span>
                                 <span className="opacity-20 text-[calc(10px*var(--app-text-scale,1))] transform scale-y-125">|</span>
                                 <span className="opacity-80">Moments <span className="font-bold opacity-100">{userStats.moments}</span></span>
@@ -322,31 +311,35 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
                         </div>
                     </div>
 
-
-
+                    {/* 步骤4：修改为黑金百夫长卡样式 */}
                     <button
                         type="button"
                         className="mx-4 mb-4 rounded-2xl overflow-hidden text-left relative min-h-[132px] p-5 flex flex-col justify-between"
                         onClick={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: true })); setShowWalletPanel(true); }}
-                        style={{ background: "#eaf5ff", boxShadow: "0 8px 24px rgba(0,0,0,0.025)", border: "1px solid rgba(255,255,255,0.72)", color: "#172033" }}
+                        style={{ 
+                            background: "linear-gradient(135deg, #1e1e1e 0%, #000000 100%)", 
+                            boxShadow: "0 8px 32px rgba(0,0,0,0.6)", 
+                            border: "1px solid rgba(212, 175, 55, 0.4)", 
+                            color: "#ffffff" 
+                        }}
                     >
                         <div className="relative flex items-start justify-between gap-4">
                             <div>
-                                <div className="ts-11 font-semibold opacity-70 tracking-[0.18em] uppercase">Real Balance</div>
-                                <div className="ts-30 font-semibold mt-2" style={{ fontFamily: "Georgia, serif" }}>{walletSummary.totalLabel}</div>
+                                {/* 标题改成黑金的标志性金标 */}
+                                <div className="ts-11 font-bold tracking-[0.2em] uppercase" style={{ color: "#d4af37" }}>Centurion</div>
+                                <div className="ts-30 font-bold mt-2 text-white" style={{ fontFamily: "Georgia, serif" }}>{walletSummary.totalLabel}</div>
                             </div>
-                            <span className="ts-11 font-semibold opacity-70 tracking-[0.18em] shrink-0" style={{ color: "#172033" }}>{walletSummary.cardCount}张银行卡</span>
+                            <span className="ts-11 font-medium opacity-80 tracking-[0.1em] shrink-0" style={{ color: "#d4af37" }}>${walletSummary.cardCount} 张卡</span>
                         </div>
                         <div className="relative flex items-center justify-between gap-3">
-                            <span className="ts-12 opacity-75">余额管理 · 银行卡与流水</span>
-                            <span className="h-8 px-3 rounded-full bg-white/70 border border-white/80 ts-12 font-semibold flex items-center gap-1" style={{ color: "#246bfd" }}>
-                                查看
+                            <span className="ts-12 opacity-60 text-gray-300">资产管理</span>
+                            <span className="h-8 px-4 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/50 ts-12 font-semibold flex items-center gap-1" style={{ color: "#d4af37" }}>
+                                查看详情
                                 <ChevronRight size={14} />
                             </span>
                         </div>
                     </button>
-
-                    {/* Quick Features Row */}
+                                        {/* Quick Features Row */}
                     <div className="mx-4 mb-4 bg-[var(--c-card)] rounded-2xl flex items-center justify-between p-4 px-6"
                          style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.025)" }}>
                         <button className="flex flex-col items-center gap-2 flex-1" onClick={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: true })); setShowMomentsSettings(true); }}>
@@ -416,37 +409,17 @@ export function UserProfilePanel({ onClose, className }: UserProfilePanelProps) 
 
 
 /* ══════════════════════════════════════════
-   Chat CSS Editor (sub-page)
+   Sub-pages and Settings (底层组件)
    ══════════════════════════════════════════ */
 function ChatCSSEditor({ onBack }: { onBack: () => void }) {
     const [css, setCss] = useState(() => kvGet("chat-app-custom-css") || "");
-
-    const handleApply = () => {
-        const trimmed = css.trim();
-        if (trimmed) kvSet("chat-app-custom-css", trimmed);
-        else kvRemove("chat-app-custom-css");
-        window.dispatchEvent(new CustomEvent("chat-app-css-updated"));
-    };
-
-    const handleClear = () => {
-        setCss("");
-        kvRemove("chat-app-custom-css");
-        window.dispatchEvent(new CustomEvent("chat-app-css-updated"));
-    };
-
+    const handleApply = () => { const trimmed = css.trim(); if (trimmed) kvSet("chat-app-custom-css", trimmed); else kvRemove("chat-app-custom-css"); window.dispatchEvent(new CustomEvent("chat-app-css-updated")); };
+    const handleClear = () => { setCss(""); kvRemove("chat-app-custom-css"); window.dispatchEvent(new CustomEvent("chat-app-css-updated")); };
     return (
         <PageShell title="自定义 CSS" onBack={() => { window.dispatchEvent(new CustomEvent("chat-hide-tabbar", { detail: false })); onBack(); }}>
             <div className="p-4 flex flex-col gap-3 flex-1">
-                <div className="ts-12 text-[var(--c-text)] opacity-70">
-                    在此输入 CSS 自定义聊天页面样式（联系人列表、朋友圈、聊天室默认样式等）。单独聊天室的 CSS 优先级更高。
-                </div>
-                <textarea
-                    value={css}
-                    onChange={(e) => setCss(e.target.value)}
-                    placeholder="/* 输入 CSS 自定义聊天页面样式... */"
-                    className="ui-textarea font-mono ts-13 leading-relaxed flex-1"
-                    style={{ minHeight: 280, resize: "none", scrollbarWidth: "none" }}
-                />
+                <div className="ts-12 text-[var(--c-text)] opacity-70">在此输入 CSS 自定义聊天页面样式。</div>
+                <textarea value={css} onChange={(e) => setCss(e.target.value)} placeholder="/* 输入 CSS ... */" className="ui-textarea font-mono ts-13 leading-relaxed flex-1" style={{ minHeight: 280, resize: "none", scrollbarWidth: "none" }} />
                 <div className="flex gap-2 items-center">
                     <CSSSchemeBar target="chat_app" currentCSS={css} onLoad={setCss} />
                     <button type="button" className="ui-btn ui-btn-outline flex-1" onClick={() => setCss(CHAT_APP_CSS_EXAMPLE)}>示例</button>
@@ -458,218 +431,55 @@ function ChatCSSEditor({ onBack }: { onBack: () => void }) {
     );
 }
 
-/* ══════════════════════════════════════════
-   Follow-Up Settings Editor (sub-page)
-   ══════════════════════════════════════════ */
 function FollowUpSettingsEditor({ onBack }: { onBack: () => void }) {
     const defaults = getDefaultFollowUpConfig();
     const [config, setConfig] = useState<FollowUpConfig>(defaults);
-
-    useEffect(() => {
-        setConfig(loadFollowUpConfig());
-    }, []);
-
-    const updateConfig = (patch: Partial<FollowUpConfig>) => {
-        const next = { ...config, ...patch };
-        setConfig(next);
-        saveFollowUpConfig(next);
-    };
-
-    const handleResetDefaults = () => {
-        setConfig(defaults);
-        saveFollowUpConfig(defaults);
-    };
-
+    useEffect(() => { setConfig(loadFollowUpConfig()); }, []);
+    const updateConfig = (patch: Partial<FollowUpConfig>) => { const next = { ...config, ...patch }; setConfig(next); saveFollowUpConfig(next); };
+    const handleResetDefaults = () => { setConfig(defaults); saveFollowUpConfig(defaults); };
     return (
         <PageShell title="追发设置" onBack={onBack} className="absolute inset-0 z-[100]">
             <div className="page-menu profile-settings-menu">
-                <p className="menu-group-desc mx-2">
-                    延迟计算：焦虑值={config.anxietyThreshold} → {config.anxietyMaxDelay}秒，焦虑值=100 → {config.anxietyMinDelay}秒，中间线性插值。焦虑值&lt;{config.anxietyThreshold}时不追发。
-                </p>
+                <p className="menu-group-desc mx-2">延迟计算：焦虑值={config.anxietyThreshold} → {config.anxietyMaxDelay}秒，焦虑值=100 → {config.anxietyMinDelay}秒，中间线性插值。</p>
                 <div className="menu-group">
                     <div className="menu-item">
                         <ProfileSettingsIcon icon={SlidersHorizontal} color={BINDING_ACCENTS.preset} />
-                        <div className="menu-label-group">
-                            <span className="menu-label">状态值字段名</span>
-                            <span className="menu-desc">用于读取角色状态中的焦虑值</span>
-                        </div>
-                        <div className="menu-right">
-                            <input
-                                value={config.anxietyFieldName}
-                                onChange={e => updateConfig({ anxietyFieldName: e.target.value })}
-                                className="w-[100px] text-right border-none outline-none ts-13 text-[var(--c-text)] bg-transparent"
-                            />
-                        </div>
+                        <div className="menu-label-group"><span className="menu-label">状态值字段名</span><span className="menu-desc">用于读取角色状态中的焦虑值</span></div>
+                        <div className="menu-right"><input value={config.anxietyFieldName} onChange={e => updateConfig({ anxietyFieldName: e.target.value })} className="w-[100px] text-right border-none outline-none ts-13 text-[var(--c-text)] bg-transparent" /></div>
                     </div>
-                    <ProfileSettingsSliderItem
-                        icon={Heart}
-                        color={CONTENT_APP_ACCENTS.moments}
-                        label="焦虑阈值"
-                        desc={`低于 ${config.anxietyThreshold} 时不触发追发`}
-                        value={config.anxietyThreshold}
-                        valueLabel={`${config.anxietyThreshold}%`}
-                        min={0}
-                        max={100}
-                        step={5}
-                        onChange={v => updateConfig({ anxietyThreshold: v })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={Clock}
-                        color={CONTENT_APP_ACCENTS.calendar}
-                        label="最短等待"
-                        desc="焦虑=100时使用"
-                        value={config.anxietyMinDelay}
-                        valueLabel={`${config.anxietyMinDelay}秒`}
-                        min={5}
-                        max={300}
-                        step={5}
-                        onChange={v => updateConfig({ anxietyMinDelay: v })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={Clock}
-                        color={BINDING_ACCENTS.voice}
-                        label="最长等待"
-                        desc="焦虑=阈值时使用"
-                        value={config.anxietyMaxDelay}
-                        valueLabel={`${config.anxietyMaxDelay}秒`}
-                        min={15}
-                        max={600}
-                        step={15}
-                        onChange={v => updateConfig({ anxietyMaxDelay: v })}
-                    />
+                    <ProfileSettingsSliderItem icon={Heart} color={CONTENT_APP_ACCENTS.moments} label="焦虑阈值" desc={`低于 ${config.anxietyThreshold} 时不触发追发`} value={config.anxietyThreshold} valueLabel={`${config.anxietyThreshold}%`} min={0} max={100} step={5} onChange={v => updateConfig({ anxietyThreshold: v })} />
+                    <ProfileSettingsSliderItem icon={Clock} color={CONTENT_APP_ACCENTS.calendar} label="最短等待" desc="焦虑=100时使用" value={config.anxietyMinDelay} valueLabel={`${config.anxietyMinDelay}秒`} min={5} max={300} step={5} onChange={v => updateConfig({ anxietyMinDelay: v })} />
+                    <ProfileSettingsSliderItem icon={Clock} color={BINDING_ACCENTS.voice} label="最长等待" desc="焦虑=阈值时使用" value={config.anxietyMaxDelay} valueLabel={`${config.anxietyMaxDelay}秒`} min={15} max={600} step={15} onChange={v => updateConfig({ anxietyMaxDelay: v })} />
                 </div>
-
-                {/* Reset button */}
-                <div className="menu-group">
-                    <button className="menu-item" onClick={handleResetDefaults}>
-                        <ProfileSettingsIcon icon={RotateCcw} color={BINDING_ACCENTS.regex} />
-                        <div className="menu-label-group"><span className="menu-label menu-label-danger">恢复默认</span></div>
-                    </button>
-                </div>
-
+                <div className="menu-group"><button className="menu-item" onClick={handleResetDefaults}><ProfileSettingsIcon icon={RotateCcw} color={BINDING_ACCENTS.regex} /><div className="menu-label-group"><span className="menu-label menu-label-danger">恢复默认</span></div></button></div>
             </div>
         </PageShell>
     );
 }
 
-/* ══════════════════════════════════════════
-   API Log Viewer (sub-page)
-   ══════════════════════════════════════════ */
 function ApiLogViewer({ onBack }: { onBack: () => void }) {
     const [logs, setLogs] = useState<DebugInfo[]>([]);
     const [expandedId, setExpandedId] = useState<string | null>(null);
-
-    useEffect(() => {
-        setLogs([...getApiLogs()].reverse());
-    }, []);
-
-    const handleClear = () => {
-        clearApiLogs();
-        setLogs([]);
-    };
-
-    const formatTime = (ts: string) => {
-        const d = new Date(ts);
-        return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
-    };
-
+    useEffect(() => { setLogs([...getApiLogs()].reverse()); }, []);
+    const handleClear = () => { clearApiLogs(); setLogs([]); };
+    const formatTime = (ts: string) => { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`; };
     return (
         <PageShell title="后台记录" onBack={onBack} className="absolute inset-0 z-[100]">
             <div className="page-menu">
-                {logs.length === 0 ? (
-                    <div className="ui-empty">
-                        <span className="menu-desc">还没有 API 调用记录</span>
-                    </div>
-                ) : (
+                {logs.length === 0 ? (<div className="ui-empty"><span className="menu-desc">还没有 API 调用记录</span></div>) : (
                     <>
-                        <div className="flex flex-col gap-3">
-                            {logs.map(log => {
-                                const isOpen = expandedId === log.id;
-                                return (
-                                    <div key={log.id} className="menu-group">
-                                        <button
-                                            onClick={() => setExpandedId(isOpen ? null : log.id)}
-                                            className="menu-item"
-                                        >
-                                            <div className="menu-label-group">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    {log.characterName && (
-                                                        <span className="ts-11 font-semibold text-white bg-[var(--c-icon-active)] rounded-[4px] px-[6px] py-[1px] shrink-0">
-                                                            {log.characterName}
-                                                        </span>
-                                                    )}
-                                                    <span className="menu-label font-semibold">{formatTime(log.timestamp)}</span>
-                                                    <span className="menu-desc">{log.messages.length} 条消息</span>
-                                                </div>
-                                                <div className="menu-desc mt-1 flex gap-3 flex-wrap">
-                                                    {log.model && <span>Model: {log.model}</span>}
-                                                    {log.usage && (
-                                                        <span>Tokens: {log.usage.prompt_tokens ?? "—"} / {log.usage.completion_tokens ?? "—"} / {log.usage.total_tokens ?? "—"}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="menu-right">
-                                                <ChevronRight
-                                                    size={16}
-                                                    className="ui-chevron-flip"
-                                                    {...(isOpen ? { "data-open": "" } : {})}
-                                                />
-                                            </div>
-                                        </button>
-
-                                        {isOpen && (
-                                            <div className="api-log-panel">
-                                                <div className="font-bold px-1 pt-3 pb-2 text-[var(--c-warning)]">
-                                                    Prompt ({log.messages.length} 条消息)
-                                                </div>
-                                                {log.messages.map((m, i) => (
-                                                    <div key={i} className="api-log-entry" data-role={m.role}>
-                                                        <div className="flex items-center gap-[6px] mb-1 flex-wrap">
-                                                            <span className="font-bold text-[var(--log-role-color)]">
-                                                                [{i}] {m.role}
-                                                            </span>
-                                                            {(m as any).marker && (
-                                                                <span className="api-log-marker">
-                                                                    {(m as any).marker}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="whitespace-pre-wrap break-all leading-[1.4]">
-                                                            {m.content}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                <div className="font-bold mt-3 mb-[6px] text-[var(--c-danger)]">
-                                                    AI 原始回复
-                                                </div>
-                                                <div className="api-log-response whitespace-pre-wrap break-all leading-[1.4]">
-                                                    {log.rawResponse}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Clear button */}
-                        <div className="menu-group mt-4">
-                            <button className="menu-item" onClick={handleClear}>
-                                <div className="menu-icon"><Trash2 size={18} color="var(--c-icon)" /></div>
-                                <div className="menu-label-group"><span className="menu-label menu-label-danger">清空记录</span></div>
-                            </button>
-                        </div>
+                        <div className="flex flex-col gap-3">{logs.map(log => {
+                            const isOpen = expandedId === log.id;
+                            return (<div key={log.id} className="menu-group"><button onClick={() => setExpandedId(isOpen ? null : log.id)} className="menu-item"><div className="menu-label-group"><div className="flex items-center gap-2 flex-wrap">{log.characterName && (<span className="ts-11 font-semibold text-white bg-[var(--c-icon-active)] rounded-[4px] px-[6px] py-[1px] shrink-0">{log.characterName}</span>)}<span className="menu-label font-semibold">{formatTime(log.timestamp)}</span><span className="menu-desc">{log.messages.length} 条消息</span></div><div className="menu-desc mt-1 flex gap-3 flex-wrap">{log.model && <span>Model: {log.model}</span>}{log.usage && (<span>Tokens: {log.usage.prompt_tokens ?? "—"} / {log.usage.completion_tokens ?? "—"} / {log.usage.total_tokens ?? "—"}</span>)}</div></div><div className="menu-right"><ChevronRight size={16} className="ui-chevron-flip" {...(isOpen ? { "data-open": "" } : {})} /></div></button>{isOpen && (<div className="api-log-panel"><div className="font-bold px-1 pt-3 pb-2 text-[var(--c-warning)]">Prompt ({log.messages.length} 条消息)</div>{log.messages.map((m, i) => (<div key={i} className="api-log-entry" data-role={m.role}><div className="flex items-center gap-[6px] mb-1 flex-wrap"><span className="font-bold text-[var(--log-role-color)]">[{i}] {m.role}</span>{(m as any).marker && (<span className="api-log-marker">{(m as any).marker}</span>)}</div><div className="whitespace-pre-wrap break-all leading-[1.4]">{m.content}</div></div>))}<div className="font-bold mt-3 mb-[6px] text-[var(--c-danger)]">AI 原始回复</div><div className="api-log-response whitespace-pre-wrap break-all leading-[1.4]">{log.rawResponse}</div></div>)}</div>);
+                        })}</div>
+                        <div className="menu-group mt-4"><button className="menu-item" onClick={handleClear}><div className="menu-icon"><Trash2 size={18} color="var(--c-icon)" /></div><div className="menu-label-group"><span className="menu-label menu-label-danger">清空记录</span></div></button></div>
                     </>
                 )}
-
             </div>
         </PageShell>
     );
 }
 
-/* ══════════════════════════════════════════
-   Inline Moments Interaction Settings (testing)
-   ══════════════════════════════════════════ */
 function InlineMomentsSettings({ onBack }: { onBack: () => void }) {
     const [config, setConfig] = useState<MomentsInteractionConfig>(loadMomentsConfig);
     const [editingBilingualPrompt, setEditingBilingualPrompt] = useState(false);
@@ -678,322 +488,31 @@ function InlineMomentsSettings({ onBack }: { onBack: () => void }) {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [posting, setPosting] = useState(false);
     const [showAutoPostList, setShowAutoPostList] = useState(false);
-
     const contacts = loadChatContacts();
     const chars = loadCharacters();
-    const enriched = contacts
-        .map(c => ({ ...c, char: chars.find(ch => ch.id === c.characterId) }))
-        .filter(c => c.char) as (typeof contacts[number] & { char: Character })[];
-
-    const update = (patch: Partial<MomentsInteractionConfig>) => {
-        const next = { ...config, ...patch };
-        setConfig(next);
-        saveMomentsConfig(next);
-    };
-
-    // 自动发帖角色开关：只拦调度发帖；评论/点赞/手动立即发帖不受影响
+    const enriched = contacts.map(c => ({ ...c, char: chars.find(ch => ch.id === c.characterId) })).filter(c => c.char) as (typeof contacts[number] & { char: Character })[];
+    const update = (patch: Partial<MomentsInteractionConfig>) => { const next = { ...config, ...patch }; setConfig(next); saveMomentsConfig(next); };
     const disabledAutoPostIds = new Set(config.autoPostDisabledCharacterIds);
-    // 徽标只统计好友范围内被关闭的——生成配角会被预置进禁用名单但未必是好友
     const disabledContactCount = enriched.filter(c => disabledAutoPostIds.has(c.characterId)).length;
-    const toggleAutoPost = (characterId: string, enabled: boolean) => {
-        const next = new Set(config.autoPostDisabledCharacterIds);
-        if (enabled) next.delete(characterId); else next.add(characterId);
-        update({ autoPostDisabledCharacterIds: [...next] });
-    };
-
-    const openBilingualPromptEditor = () => {
-        setBilingualPromptDraft(config.bilingualTranslationPrompt || DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt);
-        setEditingBilingualPrompt(true);
-    };
-
-    const saveBilingualPromptDraft = () => {
-        update({ bilingualTranslationPrompt: bilingualPromptDraft });
-        setEditingBilingualPrompt(false);
-    };
-
-    const toggleSelect = (charId: string) => {
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(charId)) next.delete(charId); else next.add(charId);
-            return next;
-        });
-    };
-
-    const handleBatchPost = () => {
-        if (selectedIds.size === 0 || posting) return;
-        setPosting(true);
-        setShowCharPicker(false);
-        triggerImmediatePost([...selectedIds]);
-        setSelectedIds(new Set());
-    };
-
-    useEffect(() => {
-        const handler = () => setPosting(false);
-        window.addEventListener("moments-immediate-post-done", handler);
-        return () => window.removeEventListener("moments-immediate-post-done", handler);
-    }, []);
-
+    const toggleAutoPost = (characterId: string, enabled: boolean) => { const next = new Set(config.autoPostDisabledCharacterIds); if (enabled) next.delete(characterId); else next.add(characterId); update({ autoPostDisabledCharacterIds: [...next] }); };
+    const openBilingualPromptEditor = () => { setBilingualPromptDraft(config.bilingualTranslationPrompt || DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt); setEditingBilingualPrompt(true); };
+    const saveBilingualPromptDraft = () => { update({ bilingualTranslationPrompt: bilingualPromptDraft }); setEditingBilingualPrompt(false); };
+    const toggleSelect = (charId: string) => { setSelectedIds(prev => { const next = new Set(prev); if (next.has(charId)) next.delete(charId); else next.add(charId); return next; }); };
+    const handleBatchPost = () => { if (selectedIds.size === 0 || posting) return; setPosting(true); setShowCharPicker(false); triggerImmediatePost([...selectedIds]); setSelectedIds(new Set()); };
+    useEffect(() => { const handler = () => setPosting(false); window.addEventListener("moments-immediate-post-done", handler); return () => window.removeEventListener("moments-immediate-post-done", handler); }, []);
     return (
         <PageShell title="朋友圈互动设置" onBack={onBack} className="absolute inset-0 z-[100]">
             <div className="page-menu profile-settings-menu">
-                <div className="menu-group">
-                    <ProfileSettingsSliderItem
-                        icon={Radio}
-                        color={CONTENT_APP_ACCENTS.moments}
-                        label="最短发帖间隔"
-                        desc={`${config.postIntervalMinHours}-${config.postIntervalMaxHours} 小时范围`}
-                        value={config.postIntervalMinHours}
-                        valueLabel={`${config.postIntervalMinHours}小时`}
-                        min={1}
-                        max={48}
-                        step={1}
-                        onChange={v => update({ postIntervalMinHours: Math.min(v, config.postIntervalMaxHours) })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={Clock}
-                        color={BINDING_ACCENTS.voice}
-                        label="最长发帖间隔"
-                        desc="自动发帖等待时间上限"
-                        value={config.postIntervalMaxHours}
-                        valueLabel={`${config.postIntervalMaxHours}小时`}
-                        min={1}
-                        max={72}
-                        step={1}
-                        onChange={v => update({ postIntervalMaxHours: Math.max(v, config.postIntervalMinHours) })}
-                    />
-                </div>
-
-                <div className="menu-group">
-                    <ProfileSettingsSliderItem
-                        icon={MessageSquare}
-                        color={CONTENT_APP_ACCENTS.chat}
-                        label="首条评论延迟"
-                        desc="发布后第一条评论的等待时间"
-                        value={config.firstCommentDelaySec}
-                        valueLabel={`${config.firstCommentDelaySec}秒`}
-                        min={5}
-                        max={600}
-                        step={5}
-                        onChange={v => update({ firstCommentDelaySec: v })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={MessageSquareDashed}
-                        color={CONTENT_APP_ACCENTS.group_chat}
-                        label="后续评论间隔"
-                        desc="连续评论之间的等待时间"
-                        value={config.commentGapSec}
-                        valueLabel={`${config.commentGapSec}秒`}
-                        min={5}
-                        max={300}
-                        step={5}
-                        onChange={v => update({ commentGapSec: v })}
-                    />
-                </div>
-
-                <div className="menu-group">
-                    <ProfileSettingsSliderItem
-                        icon={MessageSquare}
-                        color={BINDING_ACCENTS.api}
-                        label="评论概率"
-                        desc="角色看到动态后发表评论的概率"
-                        value={Math.round(config.commentProb * 100)}
-                        valueLabel={`${Math.round(config.commentProb * 100)}%`}
-                        min={0}
-                        max={100}
-                        step={5}
-                        onChange={v => update({ commentProb: v / 100 })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={ThumbsUp}
-                        color={CONTENT_APP_ACCENTS.shopping}
-                        label="点赞概率"
-                        desc="角色看到动态后点赞的概率"
-                        value={Math.round(config.likeProb * 100)}
-                        valueLabel={`${Math.round(config.likeProb * 100)}%`}
-                        min={0}
-                        max={100}
-                        step={5}
-                        onChange={v => update({ likeProb: v / 100 })}
-                    />
-                </div>
-
-                <div className="menu-group">
-                    <ProfileSettingsSliderItem
-                        icon={Clock}
-                        color={CONTENT_APP_ACCENTS.calendar}
-                        label="NPC互动延迟"
-                        desc="NPC 对朋友圈产生互动的延迟"
-                        value={config.npcReactionDelayMin}
-                        valueLabel={`${config.npcReactionDelayMin}分钟`}
-                        min={1}
-                        max={60}
-                        step={1}
-                        onChange={v => update({ npcReactionDelayMin: v })}
-                    />
-                    <ProfileSettingsSliderItem
-                        icon={Bell}
-                        color={BINDING_ACCENTS.embedding}
-                        label="角色回复NPC评论延迟"
-                        desc="角色回复 NPC 评论前的等待时间"
-                        value={config.replyDelaySec}
-                        valueLabel={`${config.replyDelaySec}秒`}
-                        min={1}
-                        max={30}
-                        step={1}
-                        onChange={v => update({ replyDelaySec: v })}
-                    />
-                </div>
-
-                <div className="menu-group">
-                    <div className="menu-item">
-                        <ProfileSettingsIcon icon={MessageSquare} color={CONTENT_APP_ACCENTS.moments} />
-                        <div className="menu-label-group">
-                            <span className="menu-label">朋友圈双语翻译</span>
-                            <span className="menu-desc">外语帖子、评论和回复自动附中文译文</span>
-                        </div>
-                        <div className="menu-right">
-                            <Toggle
-                                checked={config.bilingualTranslationEnabled}
-                                onChange={checked => update({ bilingualTranslationEnabled: checked })}
-                            />
-                        </div>
-                    </div>
-                    {config.bilingualTranslationEnabled && (
-                        <>
-                            <div className="menu-item">
-                                <ProfileSettingsIcon icon={MessageSquareDashed} color={BINDING_ACCENTS.voice} />
-                                <div className="menu-label-group">
-                                    <span className="menu-label">折叠中文译文</span>
-                                    <span className="menu-desc">关闭后默认直接展开中文</span>
-                                </div>
-                                <div className="menu-right">
-                                    <Toggle
-                                        checked={config.collapseBilingualTranslation}
-                                        onChange={checked => update({ collapseBilingualTranslation: checked })}
-                                    />
-                                </div>
-                            </div>
-                            <button className="menu-item" onClick={openBilingualPromptEditor}>
-                                <ProfileSettingsIcon icon={FileCode2} color={BINDING_ACCENTS.api} />
-                                <div className="menu-label-group">
-                                    <span className="menu-label">朋友圈双语提示词</span>
-                                </div>
-                                <div className="menu-right">
-                                    <span className="menu-desc mr-1">
-                                        {config.bilingualTranslationPrompt === DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt ? "默认" : "已自定义"}
-                                    </span>
-                                    <ChevronRight size={16} />
-                                </div>
-                            </button>
-                        </>
-                    )}
-                </div>
-
-                <div className="menu-group">
-                    <div className="menu-item" onClick={() => setShowAutoPostList(!showAutoPostList)} style={{ cursor: "pointer" }}>
-                        <ProfileSettingsIcon icon={Radio} color={CONTENT_APP_ACCENTS.moments} />
-                        <div className="menu-label-group">
-                            <span className="menu-label">自动发帖角色</span>
-                            <span className="menu-desc">
-                                {disabledContactCount > 0
-                                    ? `已关闭 ${disabledContactCount} 个角色的自动发帖`
-                                    : "所有好友角色都会按间隔自动发帖"}
-                            </span>
-                        </div>
-                        <div className="menu-right">
-                            <ChevronRight size={16} style={showAutoPostList ? { transform: "rotate(90deg)" } : undefined} />
-                        </div>
-                    </div>
-                    {showAutoPostList && enriched.map(c => (
-                        <div key={c.characterId} className="menu-item" style={{ cursor: "default" }}>
-                            <div className="chat-contact-avatar" style={{ width: 32, height: 32 }}>
-                                {c.char.avatar ? <img src={c.char.avatar} alt="" /> : <ChatFallbackAvatar />}
-                            </div>
-                            <div className="menu-label-group">
-                                <span className="menu-label">{c.char.name}</span>
-                            </div>
-                            <div className="menu-right">
-                                <Toggle
-                                    checked={!disabledAutoPostIds.has(c.characterId)}
-                                    onChange={checked => toggleAutoPost(c.characterId, checked)}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                    {showAutoPostList && enriched.length === 0 && (
-                        <div className="menu-item" style={{ cursor: "default" }}>
-                            <div className="menu-label-group"><span className="menu-desc">还没有好友角色</span></div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="menu-group">
-                    <div className="menu-item" onClick={() => setShowCharPicker(!showCharPicker)} style={{ cursor: "pointer" }}>
-                        <ProfileSettingsIcon icon={Send} color={CONTENT_APP_ACCENTS.chat} />
-                        <div className="menu-label-group">
-                            <span className="menu-label">立即发帖</span>
-                            <span className="menu-desc">{posting ? "发帖中..." : "选择角色立即发一条朋友圈"}</span>
-                        </div>
-                        {showCharPicker && selectedIds.size > 0 && (
-                            <button className="ui-btn ui-btn-success ts-12" style={{ padding: "4px 12px" }}
-                                onClick={e => { e.stopPropagation(); handleBatchPost(); }}
-                            >发帖 ({selectedIds.size})</button>
-                        )}
-                    </div>
-                    {showCharPicker && (
-                        <div className="chat-contact-list">
-                            {enriched.map(c => (
-                                <div key={c.characterId} className="chat-contact-item" onClick={() => toggleSelect(c.characterId)}>
-                                    <div className="chat-contact-avatar"
-                                        style={selectedIds.has(c.characterId) ? { outline: "3px solid var(--c-success)", outlineOffset: "2px" } : undefined}
-                                    >
-                                        {c.char.avatar ? (
-                                            <img src={c.char.avatar} alt="" />
-                                        ) : (
-                                            <ChatFallbackAvatar />
-                                        )}
-                                    </div>
-                                    <span className="chat-contact-name">{c.char.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="menu-group">
-                    <button className="menu-item" onClick={() => { setConfig(DEFAULT_MOMENTS_CONFIG); saveMomentsConfig(DEFAULT_MOMENTS_CONFIG); }}>
-                        <ProfileSettingsIcon icon={RotateCcw} color={BINDING_ACCENTS.regex} />
-                        <div className="menu-label-group"><span className="menu-label menu-label-danger">恢复默认</span></div>
-                    </button>
-                </div>
-
+                <div className="menu-group"><ProfileSettingsSliderItem icon={Radio} color={CONTENT_APP_ACCENTS.moments} label="最短发帖间隔" desc={`${config.postIntervalMinHours}-${config.postIntervalMaxHours} 小时范围`} value={config.postIntervalMinHours} valueLabel={`${config.postIntervalMinHours}小时`} min={1} max={48} step={1} onChange={v => update({ postIntervalMinHours: Math.min(v, config.postIntervalMaxHours) })} /><ProfileSettingsSliderItem icon={Clock} color={BINDING_ACCENTS.voice} label="最长发帖间隔" desc="自动发帖等待时间上限" value={config.postIntervalMaxHours} valueLabel={`${config.postIntervalMaxHours}小时`} min={1} max={72} step={1} onChange={v => update({ postIntervalMaxHours: Math.max(v, config.postIntervalMinHours) })} /></div>
+                <div className="menu-group"><ProfileSettingsSliderItem icon={MessageSquare} color={CONTENT_APP_ACCENTS.chat} label="首条评论延迟" desc="发布后第一条评论的等待时间" value={config.firstCommentDelaySec} valueLabel={`${config.firstCommentDelaySec}秒`} min={5} max={600} step={5} onChange={v => update({ firstCommentDelaySec: v })} /><ProfileSettingsSliderItem icon={MessageSquareDashed} color={CONTENT_APP_ACCENTS.group_chat} label="后续评论间隔" desc="连续评论之间的等待时间" value={config.commentGapSec} valueLabel={`${config.commentGapSec}秒`} min={5} max={300} step={5} onChange={v => update({ commentGapSec: v })} /></div>
+                <div className="menu-group"><ProfileSettingsSliderItem icon={MessageSquare} color={BINDING_ACCENTS.api} label="评论概率" desc="角色看到动态后发表评论的概率" value={Math.round(config.commentProb * 100)} valueLabel={`${Math.round(config.commentProb * 100)}%`} min={0} max={100} step={5} onChange={v => update({ commentProb: v / 100 })} /><ProfileSettingsSliderItem icon={ThumbsUp} color={CONTENT_APP_ACCENTS.shopping} label="点赞概率" desc="角色看到动态后点赞的概率" value={Math.round(config.likeProb * 100)} valueLabel={`${Math.round(config.likeProb * 100)}%`} min={0} max={100} step={5} onChange={v => update({ likeProb: v / 100 })} /></div>
+                <div className="menu-group"><ProfileSettingsSliderItem icon={Clock} color={CONTENT_APP_ACCENTS.calendar} label="NPC互动延迟" desc="NPC 对朋友圈产生互动的延迟" value={config.npcReactionDelayMin} valueLabel={`${config.npcReactionDelayMin}分钟`} min={1} max={60} step={1} onChange={v => update({ npcReactionDelayMin: v })} /><ProfileSettingsSliderItem icon={Bell} color={BINDING_ACCENTS.embedding} label="角色回复NPC评论延迟" desc="角色回复 NPC 评论前的等待时间" value={config.replyDelaySec} valueLabel={`${config.replyDelaySec}秒`} min={1} max={30} step={1} onChange={v => update({ replyDelaySec: v })} /></div>
+                <div className="menu-group"><div className="menu-item"><ProfileSettingsIcon icon={MessageSquare} color={CONTENT_APP_ACCENTS.moments} /><div className="menu-label-group"><span className="menu-label">朋友圈双语翻译</span><span className="menu-desc">外语帖子、评论和回复自动附中文译文</span></div><div className="menu-right"><Toggle checked={config.bilingualTranslationEnabled} onChange={checked => update({ bilingualTranslationEnabled: checked })} /></div></div>{config.bilingualTranslationEnabled && (<><div className="menu-item"><ProfileSettingsIcon icon={MessageSquareDashed} color={BINDING_ACCENTS.voice} /><div className="menu-label-group"><span className="menu-label">折叠中文译文</span><span className="menu-desc">关闭后默认直接展开中文</span></div><div className="menu-right"><Toggle checked={config.collapseBilingualTranslation} onChange={checked => update({ collapseBilingualTranslation: checked })} /></div></div><button className="menu-item" onClick={openBilingualPromptEditor}><ProfileSettingsIcon icon={FileCode2} color={BINDING_ACCENTS.api} /><div className="menu-label-group"><span className="menu-label">朋友圈双语提示词</span></div><div className="menu-right"><span className="menu-desc mr-1">{config.bilingualTranslationPrompt === DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt ? "默认" : "已自定义"}</span><ChevronRight size={16} /></div></button></>)}</div>
+                <div className="menu-group"><div className="menu-item" onClick={() => setShowAutoPostList(!showAutoPostList)} style={{ cursor: "pointer" }}><ProfileSettingsIcon icon={Radio} color={CONTENT_APP_ACCENTS.moments} /><div className="menu-label-group"><span className="menu-label">自动发帖角色</span><span className="menu-desc">{disabledContactCount > 0 ? `已关闭 ${disabledContactCount} 个角色的自动发帖` : "所有好友角色都会按间隔自动发帖"}</span></div><div className="menu-right"><ChevronRight size={16} style={showAutoPostList ? { transform: "rotate(90deg)" } : undefined} /></div></div>{showAutoPostList && enriched.map(c => (<div key={c.characterId} className="menu-item" style={{ cursor: "default" }}><div className="chat-contact-avatar" style={{ width: 32, height: 32 }}>{c.char.avatar ? <img src={c.char.avatar} alt="" /> : <ChatFallbackAvatar />}</div><div className="menu-label-group"><span className="menu-label">{c.char.name}</span></div><div className="menu-right"><Toggle checked={!disabledAutoPostIds.has(c.characterId)} onChange={checked => toggleAutoPost(c.characterId, checked)} /></div></div>))}{showAutoPostList && enriched.length === 0 && (<div className="menu-item" style={{ cursor: "default" }}><div className="menu-label-group"><span className="menu-desc">还没有好友角色</span></div></div>)}</div>
+                <div className="menu-group"><div className="menu-item" onClick={() => setShowCharPicker(!showCharPicker)} style={{ cursor: "pointer" }}><ProfileSettingsIcon icon={Send} color={CONTENT_APP_ACCENTS.chat} /><div className="menu-label-group"><span className="menu-label">立即发帖</span><span className="menu-desc">{posting ? "发帖中..." : "选择角色立即发一条朋友圈"}</span></div>{showCharPicker && selectedIds.size > 0 && (<button className="ui-btn ui-btn-success ts-12" style={{ padding: "4px 12px" }} onClick={e => { e.stopPropagation(); handleBatchPost(); }}>发帖 ({selectedIds.size})</button>)}</div>{showCharPicker && (<div className="chat-contact-list">{enriched.map(c => (<div key={c.characterId} className="chat-contact-item" onClick={() => toggleSelect(c.characterId)}><div className="chat-contact-avatar" style={selectedIds.has(c.characterId) ? { outline: "3px solid var(--c-success)", outlineOffset: "2px" } : undefined}>{c.char.avatar ? <img src={c.char.avatar} alt="" /> : <ChatFallbackAvatar />}</div><span className="chat-contact-name">{c.char.name}</span></div>))}</div>)}</div>
+                <div className="menu-group"><button className="menu-item" onClick={() => { setConfig(DEFAULT_MOMENTS_CONFIG); saveMomentsConfig(DEFAULT_MOMENTS_CONFIG); }}><ProfileSettingsIcon icon={RotateCcw} color={BINDING_ACCENTS.regex} /><div className="menu-label-group"><span className="menu-label menu-label-danger">恢复默认</span></div></button></div>
             </div>
-            {editingBilingualPrompt && (
-                <div className="modal-overlay">
-                    <div className="modal-dialog chat-bilingual-prompt-dialog">
-                        <div className="ts-17 font-semibold text-center text-[var(--c-text)]">朋友圈双语提示词</div>
-                        <textarea
-                            className="ui-input chat-bilingual-prompt-textarea"
-                            value={bilingualPromptDraft}
-                            onChange={event => setBilingualPromptDraft(event.target.value)}
-                        />
-                        <div className="flex gap-3 w-full">
-                            <button
-                                onClick={() => setBilingualPromptDraft(DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt)}
-                                className="ui-btn ui-btn-outline flex-1"
-                            >
-                                恢复默认
-                            </button>
-                            <button onClick={() => setEditingBilingualPrompt(false)} className="ui-btn ui-btn-ghost flex-1">
-                                取消
-                            </button>
-                            <button onClick={saveBilingualPromptDraft} className="ui-btn ui-btn-success flex-1">
-                                保存
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {editingBilingualPrompt && (<div className="modal-overlay"><div className="modal-dialog chat-bilingual-prompt-dialog"><div className="ts-17 font-semibold text-center text-[var(--c-text)]">朋友圈双语提示词</div><textarea className="ui-input chat-bilingual-prompt-textarea" value={bilingualPromptDraft} onChange={event => setBilingualPromptDraft(event.target.value)} /><div className="flex gap-3 w-full"><button onClick={() => setBilingualPromptDraft(DEFAULT_MOMENTS_CONFIG.bilingualTranslationPrompt)} className="ui-btn ui-btn-outline flex-1">恢复默认</button><button onClick={() => setEditingBilingualPrompt(false)} className="ui-btn ui-btn-ghost flex-1">取消</button><button onClick={saveBilingualPromptDraft} className="ui-btn ui-btn-success flex-1">保存</button></div></div></div>)}
         </PageShell>
     );
-}
+                            }
