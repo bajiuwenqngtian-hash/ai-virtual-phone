@@ -570,44 +570,56 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
     onShowDetail?: (msg: ChatMessage) => void;
 }) {
     const d = msg.mediaData;
-    const isDeclined = d?.status === "declined";
-    const claimedBy = d?.claimedBy || [];
-    const claimedAmounts = d?.claimedAmounts || {};
-    const totalRecipients = d?.count || 1;
-    const allClaimed = d?.status === "opened" || claimedBy.length >= totalRecipients;
-    const isDone = allClaimed || isDeclined;
-    const userShare = userName ? claimedAmounts[userName] : undefined;
-
-    const bgClass = isDeclined
-        ? "bg-declined-gradient"
-        : isDone ? "bg-opened-gradient" : "bg-redpacket-gradient";
+    const isUser = msg.role === "user";
+    const wechatFontFamily = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif';
 
     return (
         <div
-            className={`chat-red-packet-card w-[240px] rounded-xl overflow-hidden cursor-pointer ${!isDone ? "red-packet-pulse" : ""}`}
+            className="custom-wechat-redpacket"
+            style={{
+                position: "relative",
+                backgroundColor: "#FA9E3B",
+                width: "240px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontFamily: wechatFontFamily,
+                marginLeft: isUser ? "0" : "6px",
+                marginRight: isUser ? "6px" : "0",
+            }}
             onClick={() => onShowDetail?.(msg)}
         >
-            <div className={`chat-red-packet-body p-4 flex items-center gap-3 min-h-[70px] ${bgClass}`}>
-                <div className="ts-32 shrink-0">🧧</div>
-                <div className="flex-1 min-w-0">
-                    <div className="text-white ts-15 font-medium">
-                        {d?.label || "恭喜发财，大吉大利"}
-                    </div>
-                    {userShare != null && (
-                        <div className="ts-20 font-bold mt-1 ui-text-white-85">¥{userShare.toFixed(2)}</div>
-                    )}
-                    {isDeclined && <div className="ts-12 mt-1 ui-text-white-70">已退回</div>}
+            {/* 小尖角 */}
+            <div style={{
+                position: "absolute", top: "16px", [isUser ? "right" : "left"]: "-5px",
+                width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent",
+                ...(isUser ? { borderLeft: "6px solid #FA9E3B" } : { borderRight: "6px solid #FA9E3B" })
+            }} />
+
+            {/* 红包主体：左侧红色小块 + 右侧文字 */}
+            <div style={{ display: "flex", alignItems: "center", padding: "14px" }}>
+                <div style={{
+                    width: "40px", height: "48px", backgroundColor: "#D74436", 
+                    borderRadius: "3px", marginRight: "12px", display: "flex", 
+                    alignItems: "center", justifyContent: "center", color: "#F7CC77",
+                    fontSize: "20px", fontWeight: "bold"
+                }}>
+                    福
+                </div>
+                <div style={{ fontSize: "17px", color: "#FFFFFF", flex: 1, lineHeight: 1.3 }}>
+                    {d?.label || "恭喜发财，大吉大利"}
                 </div>
             </div>
-            <div className="ui-media-footer px-4 py-1.5 ts-11" {...(isDeclined ? { "data-status": "declined" } : {})}>
-                <span>微信红包</span>
-                {totalRecipients > 1 && claimedBy.length > 0 && (
-                    <span className="ml-1 opacity-70">· {claimedBy.length}/{totalRecipients}已领取</span>
-                )}
+
+            {/* 底部标识 */}
+            <div style={{ 
+                padding: "0 14px 10px 14px", fontSize: "11px", color: "rgba(255, 255, 255, 0.7)" 
+            }}>
+                微信红包
             </div>
         </div>
     );
 }
+
 
 // ── Transfer ─────────────────────────────
 
