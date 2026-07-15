@@ -706,59 +706,61 @@ const ChatTextInputBar = memo(forwardRef<ChatTextInputHandle, {
                     <button onClick={onClearQuote} className="ui-bare-btn text-[var(--c-icon)] ts-16 leading-none p-[2px]">✕</button>
                 </div>
             )}
-            {/* ===== 开始替换：仿微信风格摆设底栏 ===== */}
-            <div className="flex items-end gap-2 px-3 py-2 w-full bg-[#F7F7F7] border-t border-[#E5E5E5] z-10">
-                {/* 伪装的语音图标 */}
-                <button type="button" className="shrink-0 mb-[2px] p-1 text-[#181818]" aria-hidden="true" onClick={() => {}}>
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-                </button>
-
-                {/* 真实的输入框容器（藏在这里） */}
-                <div className="flex-1 bg-white rounded-[6px] flex items-center min-h-[36px] px-2 py-1 border border-transparent focus-within:border-[#E5E5E5] transition-colors">
-                    <textarea
-                        ref={textareaRef}
-                        rows={1}
-                        value={inputText}
-                        onChange={e => {
-                            setInputText(e.target.value);
-                            e.target.style.height = "auto";
-                            e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                        }}
-                        onFocus={(e) => {
-                            if (panelOpen) {
-                                e.target.blur();
-                                onClosePanels();
-                                const target = e.target as HTMLTextAreaElement;
-                                requestAnimationFrame(() => requestAnimationFrame(() => target.focus()));
-                            }
-                        }}
-                        onKeyDown={e => {
-                            if (shouldSendChatInputOnEnter(e, enterToSendEnabled)) {
-                                e.preventDefault();
-                                handleSubmit();
-                            }
-                        }}
-                        enterKeyHint={enterToSendEnabled ? "send" : "enter"}
-                        className="chat-input-textarea flex-1 bg-transparent outline-none resize-none text-[16px] text-[#000000] max-h-[120px] leading-normal"
-                        style={{ minHeight: "22px", padding: 0 }}
-                        disabled={inputLocked}
-                        placeholder={inputLocked
-                            ? (isSpectator ? "围观中..." : `禁言中...`)
-                            : (theaterMode ? "番外指令..." : undefined)}
-                    />
+                        {/* 这一整块替换掉原本的 <textarea ... /> */}
+            <div className="flex items-end gap-[10px] w-full px-2">
+                
+                {/* 左侧摆设：伪装的语音图标 (纯展示，不起作用) */}
+                <div className="shrink-0 mb-[6px] text-[#181818]" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
                 </div>
 
-                {/* 伪装的笑脸图标 */}
-                <button type="button" className="shrink-0 mb-[2px] p-1 text-[#181818]" aria-hidden="true" onClick={() => {}}>
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                </button>
+                {/* 中间：真实的输入框 (加了 flex-1 让它自动缩短并挤在图标中间) */}
+                <textarea
+                    ref={textareaRef}
+                    rows={1}
+                    value={inputText}
+                    onChange={e => {
+                        setInputText(e.target.value);
+                        e.target.style.height = "auto";
+                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                    }}
+                    onFocus={(e) => {
+                        if (panelOpen) {
+                            e.target.blur();
+                            onClosePanels();
+                            const target = e.target as HTMLTextAreaElement;
+                            requestAnimationFrame(() => requestAnimationFrame(() => target.focus()));
+                        }
+                    }}
+                    onKeyDown={e => {
+                        if (shouldSendChatInputOnEnter(e, enterToSendEnabled)) {
+                            e.preventDefault();
+                            handleSubmit();
+                        }
+                    }}
+                    enterKeyHint={enterToSendEnabled ? "send" : "enter"}
+                    className="chat-input-textarea flex-1 !m-0 bg-white border border-transparent focus:border-[#E5E5E5] transition-colors" 
+                    disabled={inputLocked}
+                    placeholder={inputLocked
+                        ? (isSpectator ? "围观中，你不在这个群里" : `禁言中，剩余${Math.ceil(muteRemainingMs / 60000)}分钟`)
+                        : (theaterMode ? "写下番外指令..." : undefined)}
+                />
 
-                {/* 伪装的加号图标 */}
-                <button type="button" className="shrink-0 mb-[2px] p-1 text-[#181818]" aria-hidden="true" onClick={() => {}}>
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                </button>
+                {/* 右侧摆设：伪装的笑脸图标 (纯展示，不起作用) */}
+                <div className="shrink-0 mb-[6px] text-[#181818]" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </div>
+
+                {/* 右侧摆设：伪装的加号图标 (纯展示，不起作用) */}
+                <div className="shrink-0 mb-[6px] text-[#181818]" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </div>
+                
             </div>
-            {/* ===== 替换结束 ===== */}
+            {/* ====== 替换到此为止 ====== */}
+            
+            {/* 注意：你原本的 <div className="chat-input-actions"> ... 代码原封不动保留在下面 */}
+
 
 
             <div className="chat-input-actions">
