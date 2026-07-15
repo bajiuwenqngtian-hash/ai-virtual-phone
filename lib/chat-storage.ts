@@ -61,7 +61,8 @@ export type ChatSession = {
     groupAdminIds?: string[]; // characterId | "self"
     groupMutes?: Record<string, string>; // (characterId | "self") → mute expiry ISO
     allowAdminActionsOnUser?: boolean; // characters may kick/mute the user (default off)
-    isSpectator?: boolean; // 围观群：用户不在群内，只能生成/线下
+        isSpectator?: boolean; // 围观群：用户不在群内，只能生成/线下
+    contactRemoved?: boolean; // 用户主动删除好友后置为 true，阻止联系人被自动恢复
 };
 
 export type ChatMessageStatus = "sending" | "sent" | "read" | "failed";
@@ -641,12 +642,14 @@ function normalizeChatSessions(sessions: ChatSession[]): NormalizedSessionList {
 
 function restoreContactsForPrivateSessions(contacts: ChatContact[], sessions: ChatSession[]): NormalizedList<ChatContact> {
     const characterIds = new Set(loadCharacters().map(character => character.id));
-    const privateSessionsWithMessages = sessions.filter(session =>
+        const privateSessionsWithMessages = sessions.filter(session =>
         !session.isGroup
         && session.contactId
+        && !session.contactRemoved
         && characterIds.has(session.contactId)
         && Boolean(getLastVisibleSessionMessage(session.id))
     );
+
     if (privateSessionsWithMessages.length === 0 || contacts.length >= privateSessionsWithMessages.length) {
         return { items: contacts, changed: false };
     }
@@ -777,8 +780,23 @@ export function saveChatContacts(contacts: ChatContact[]) {
 }
 
 export function addChatContact(characterId: string): ChatContact | null {
+    // 重新添加好友时清除“已删除”标记，让联系人和聊天恢复正常
+    const sessions = loadChatSessions();
+    let sessionsChanged = false;
+    const nextSessions = sessions.map(s => {
+        if (!s.isGroup && s.contactId === characterId && s.contactRemoved) {
+            sessionsChanged = true;
+            const rest = { ...s };
+            delete rest.contactRemoved;
+            return rest;
+        }
+        return s;
+    });
+    if (sessionsChanged) saveChatSessions(nextSessions);
+
     const contacts = loadChatContacts();
     if (contacts.find(c => c.characterId === characterId)) return null; // already exists
+
 
     const newContact: ChatContact = {
         id: `contact_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -790,9 +808,22 @@ export function addChatContact(characterId: string): ChatContact | null {
 }
 
 export function removeChatContact(characterId: string) {
+    // 先标记该联系人的私聊会话为“已删除”，防止联系人自动恢复机制把它加回来
+    const sessions = loadChatSessions();
+    let sessionsChanged = false;
+    const nextSessions = sessions.map(s => {
+        if (!s.isGroup && s.contactId === characterId && !s.contactRemoved) {
+            sessionsChanged = true;
+            return { ...s, contactRemoved: true };
+        }
+        return s;
+    });
+    if (sessionsChanged) saveChatSessions(nextSessions);
+
     const contacts = loadChatContacts();
     saveChatContacts(contacts.filter(c => c.characterId !== characterId));
 }
+
 
 // ── CRUD for Sessions ─────────────────────────
 export function loadChatSessions(): ChatSession[] {
