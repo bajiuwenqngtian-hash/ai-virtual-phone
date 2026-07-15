@@ -2177,39 +2177,41 @@ function VoiceMessageBubble({ msg, characterId, onUpdate, defaultTranslationExpa
 
     useEffect(() => () => { audioRef.current?.pause(); }, []);
 
-    // Wave bars — slightly irregular heights so the idle state already looks intentional.
-    const barCount = Math.min(Math.max(4, Math.round(duration / 2)), 9);
-    const barHeights = Array.from({ length: barCount }, (_, i) => {
-        const center = (barCount - 1) / 2;
-        const dist = Math.abs(i - center);
-        return Math.max(6, Math.round(15 - dist * 2.2));
-    });
+        const isUser = msg.role === "user";
 
     return (
         <div className="voice-msg-bubble" onClick={handlePlay}
-            style={{ minWidth: `${Math.min(60 + duration * 8, 220)}px` }}
+            style={{
+                minWidth: `${Math.min(60 + duration * 8, 220)}px`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: isUser ? "flex-end" : "flex-start",
+                gap: "6px",
+                cursor: "pointer",
+                padding: "0 4px" // 微调内边距使其更自然
+            }}
         >
-            <div className="voice-msg-icon-shell">
-                <div className="voice-msg-icon">
-                {synthesizing ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" /></svg>
-                ) : playing ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-                )}
-                </div>
-            </div>
-            <div className="voice-msg-bars" {...(playing ? { "data-playing": "" } : {})}>
-                {barHeights.map((height, i) => (
-                    <div
-                        key={i}
-                        className="voice-msg-bar"
-                        style={{ height: `${height}px`, animationDelay: `${i * 0.08}s` }}
-                    />
-                ))}
-            </div>
-            <span className="voice-msg-dur">{duration}&quot;</span>
+            {synthesizing ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" /></svg>
+            ) : isUser ? (
+                <>
+                    <span className="voice-msg-dur" style={{ fontSize: "15px", color: "#333", fontWeight: 500 }}>{duration}&quot;</span>
+                    <div className="voice-msg-icon" style={{ display: "flex", alignItems: "center", opacity: playing ? 0.5 : 1 }}>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M13.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm2.75-3.75a5.25 5.25 0 0 1 0 7.5 1 1 0 1 0 1.42 1.42 7.25 7.25 0 0 0 0-10.34 1 1 0 0 0-1.42 1.42zm2.83-2.83a9.25 9.25 0 0 1 0 13.16 1 1 0 1 0 1.42 1.42 11.25 11.25 0 0 0 0-16 1 1 0 0 0-1.42 1.42z" />
+                        </svg>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="voice-msg-icon" style={{ display: "flex", alignItems: "center", opacity: playing ? 0.5 : 1 }}>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ transform: "scaleX(-1)" }}>
+                            <path d="M13.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm2.75-3.75a5.25 5.25 0 0 1 0 7.5 1 1 0 1 0 1.42 1.42 7.25 7.25 0 0 0 0-10.34 1 1 0 0 0-1.42 1.42zm2.83-2.83a9.25 9.25 0 0 1 0 13.16 1 1 0 1 0 1.42 1.42 11.25 11.25 0 0 0 0-16 1 1 0 0 0-1.42 1.42z" />
+                        </svg>
+                    </div>
+                    <span className="voice-msg-dur" style={{ fontSize: "15px", color: "#333", fontWeight: 500 }}>{duration}&quot;</span>
+                </>
+            )}
         </div>
     );
 }
