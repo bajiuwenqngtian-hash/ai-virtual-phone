@@ -2192,45 +2192,44 @@ function VoiceMessageBubble({ msg, characterId, onUpdate, defaultTranslationExpa
 
     useEffect(() => () => { audioRef.current?.pause(); }, []);
 
-            const isUser = msg.role === "user";
+                const isUser = msg.role === "user";
 
     return (
         <div className="voice-msg-bubble" onClick={handlePlay}
             style={{
-                minWidth: `${Math.min(60 + duration * 8, 220)}px`,
+                minWidth: `${Math.min(40 + duration * 6, 200)}px`, // 缩小气泡的基础宽度
                 display: "flex",
                 alignItems: "center",
                 justifyContent: isUser ? "flex-end" : "flex-start",
-                gap: "6px",
+                gap: "4px", // 缩小数字和声波的间距
                 cursor: "pointer",
-                padding: "8px 10px", // 增加一点内边距，让整体更像微信
-                boxSizing: "border-box"
+                padding: "0", // 移除内边距，完全依赖外层气泡的边距，解决太宽大的问题
             }}
         >
             {synthesizing ? (
                 <svg width="16" height="16" viewBox="0 0 24 24" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" /></svg>
             ) : isUser ? (
                 <>
-                    {/* 自己发出的（绿色在右）：秒数在左，尖角朝右，波纹向左 */}
+                    {/* 用户发出：数字在左，波纹朝左发射，声源尖角在右（靠近头像） */}
                     <span style={{ fontSize: "15px", color: "#333", fontWeight: 500, margin: 0, flex: "none" }}>{duration}&quot;</span>
                     <div style={{ display: "flex", alignItems: "center", opacity: playing ? 0.5 : 1, margin: 0, flex: "none" }}>
                         <svg viewBox="0 0 24 24" width="20" height="20">
-                            {/* 纯手工定制：带弧度的三角形尖角（向右） */}
-                            <path d="M14 8.5 A 3.5 3.5 0 0 1 17 12 A 3.5 3.5 0 0 1 14 15.5 A 4 4 0 0 0 14 8.5 Z" fill="currentColor" />
-                            <path d="M11 7A5 5 0 0 0 11 17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M7 3.5A9.5 9.5 0 0 0 7 20.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            {/* 手绘原生小扇形：尖角在 (17,12)，向左侧扩散 */}
+                            <path d="M 17 12 L 14 9.5 A 4 4 0 0 0 14 14.5 Z" fill="currentColor" />
+                            <path d="M 10 7 A 5 5 0 0 0 10 17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M 6 3.5 A 9.5 9.5 0 0 0 6 20.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                     </div>
                 </>
             ) : (
                 <>
-                    {/* 收到对方的（白色在左）：尖角朝左，波纹向右，秒数在右 */}
+                    {/* 对方发出：波纹朝右发射，声源尖角在左（靠近头像），数字在右 */}
                     <div style={{ display: "flex", alignItems: "center", opacity: playing ? 0.5 : 1, margin: 0, flex: "none" }}>
                         <svg viewBox="0 0 24 24" width="20" height="20">
-                            {/* 纯手工定制：带弧度的三角形尖角（向左） */}
-                            <path d="M10 8.5 A 3.5 3.5 0 0 0 7 12 A 3.5 3.5 0 0 0 10 15.5 A 4 4 0 0 1 10 8.5 Z" fill="currentColor" />
-                            <path d="M13 7A5 5 0 0 1 13 17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M17 3.5A9.5 9.5 0 0 1 17 20.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            {/* 手绘原生小扇形：尖角在 (7,12)，向右侧扩散 */}
+                            <path d="M 7 12 L 10 9.5 A 4 4 0 0 1 10 14.5 Z" fill="currentColor" />
+                            <path d="M 14 7 A 5 5 0 0 1 14 17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M 18 3.5 A 9.5 9.5 0 0 1 18 20.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                     </div>
                     <span style={{ fontSize: "15px", color: "#333", fontWeight: 500, margin: 0, flex: "none" }}>{duration}&quot;</span>
