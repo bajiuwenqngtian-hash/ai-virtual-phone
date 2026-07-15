@@ -117,7 +117,7 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const isLikedByUser = post.likes.some(l => l.authorType === "user");
     const momentsConfig = loadMomentsConfig();
     const defaultTranslationExpanded = momentsConfig.collapseBilingualTranslation === true ? false : true;
-    const handleLike = () => {
+const handleLike = () => {
     toggleMomentLike(post.id, "user", "user");
     onUpdate();
 };
@@ -399,8 +399,12 @@ return (
             <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-[2px] mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
+                    {/* 【核心修复】：将原来的三个点（MoreHorizontal）改为了自定义的两个点。 */}
                     <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] px-3 py-1 transition-colors">
-                        <MoreHorizontal size={20} strokeWidth={2} className="text-[#576b95]" />
+                        <div className="flex items-center gap-[5px] text-[#576b95]">
+                            <div className="w-[4px] h-[4px] rounded-full bg-current"></div>
+                            <div className="w-[4px] h-[4px] rounded-full bg-current"></div>
+                        </div>
                     </button>
                     {showBottomMenu && (
                         <div ref={menuRef} className="absolute bottom-full right-0 mb-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-24 overflow-hidden">
@@ -459,7 +463,6 @@ return (
                                                 )}
                                             </div>
                                         </div>
-                                        {/* 【核心修复】：将内部的 pl-[52px] 彻底移除，改为 pl-0，这样下方回复就会与父级精准左对齐 */}
                                         {replies.length > 0 && (
                                             <div className="feed-comment-replies flex flex-col gap-1 w-full mt-1 pl-0">
                                                 {replies.map((reply) => {
