@@ -256,7 +256,6 @@ const handleRegeneratePhotoWithPrompt = useCallback(() => {
 
 return (
     <div data-moment-post-id={post.id} className="feed-post relative border-b-[2.5px] border-[var(--c-card-border)] pb-5 mb-5 w-full bg-transparent px-4 pt-2">
-        {/* 【核心修复1】：把 mb-1 改为 mb-0，去掉行与行之间多余的缝隙 */}
         <div className="feed-post-header flex items-start gap-3 mb-0">
             <div className="feed-post-author-avatar w-[40px] h-[40px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                 {authorAvatar ? (
@@ -295,7 +294,6 @@ return (
             )}
         </div>
 
-        {/* 【核心修复2】：将 mt-[2px] 强制改为 mt-0，严格压缩名字到文案的距离 */}
         {post.content && (
             <div className="feed-post-content ts-16 leading-[1.75] text-[var(--c-text-title)] whitespace-pre-wrap break-words ml-[52px] mt-0 mb-[2px] w-[calc(100%-52px)]">
                 <BilingualTextBlock text={post.content} mode="plain" defaultExpanded={defaultTranslationExpanded} />
@@ -401,7 +399,6 @@ return (
             <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-[2px] mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
-                    {/* 【核心修复3】：灰底按钮从正方形改成 px-3 py-1 的长方形 */}
                     <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] px-3 py-1 transition-colors">
                         <MoreHorizontal size={20} strokeWidth={2} className="text-[#576b95]" />
                     </button>
@@ -421,7 +418,6 @@ return (
                     {likeNames.length > 0 && (
                         <div className={`feed-like-summary flex items-start gap-1 ts-15 leading-[1.55] text-[var(--c-text-title)] ${comments.length > 0 ? 'border-b border-[#ebebeb] pb-2 mb-1' : 'pb-1'}`}>
                             <span className="feed-like-summary-icon shrink-0 mt-[4px] mr-1 text-[#576b95]"><Heart size={15} strokeWidth={1.75} fill="none" /></span>
-                            {/* 【核心修复4】：点赞的名字改成深蓝色粗体 font-bold text-[#576b95] */}
                             <span className="feed-like-summary-text font-bold text-[#576b95]">{likeNames.join("、")}</span>
                         </div>
                     )}
@@ -463,15 +459,17 @@ return (
                                                 )}
                                             </div>
                                         </div>
+                                        {/* 【核心修复】：将回复列表放大、缩进修正 */}
                                         {replies.length > 0 && (
-                                            <div className="feed-comment-replies flex flex-col gap-1 w-full mt-1 pl-[40px]">
+                                            <div className="feed-comment-replies flex flex-col gap-1 w-full mt-1 pl-[52px]">
                                                 {replies.map((reply) => {
                                                     const replyName = getAuthorName(reply.authorType, reply.authorId, reply.authorName);
                                                     const replyAvatar = getAuthorAvatar(reply.authorType, reply.authorId);
                                                     const replyTargetName = reply.replyToAuthorId ? getAuthorName(reply.replyToAuthorType || "character", reply.replyToAuthorId, reply.replyToAuthorName) : null;
                                                     return (
                                                         <div key={reply.id} className="feed-comment feed-comment-child flex items-start gap-2 cursor-pointer relative" onClick={(event) => handleCommentPress(reply, event)}>
-                                                            <div className="feed-comment-avatar feed-comment-avatar-child w-[22px] h-[22px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center mt-[2px]">
+                                                            {/* 将 w-[22px] h-[22px] 改为 w-[32px] h-[32px] 统一大小。并去掉头像的 mt-[2px]，让其按 items-start 严格顶端对齐 */}
+                                                            <div className="feed-comment-avatar feed-comment-avatar-child w-[32px] h-[32px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                                                                 {replyAvatar ? <img src={replyAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                                             </div>
                                                             
@@ -479,6 +477,7 @@ return (
                                                                 e.stopPropagation();
                                                                 setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id);
                                                             }}>
+                                                                {/* 文字同步添加 mt-[2px] 实现头顶与 32px 头像平行 */}
                                                                 <div className="flex justify-between items-start w-full">
                                                                     <span className="feed-comment-author font-bold text-[#576b95] opacity-100 mt-[2px]">{replyName}</span>
                                                                     <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(reply.createdAt)}</span>
