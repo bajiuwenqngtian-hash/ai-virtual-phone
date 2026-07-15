@@ -68,7 +68,8 @@
   flex: none;
   min-height: 0;
   overflow-y: auto;
-  padding-top: calc(var(--safe-area-top, 48px) + var(--page-header-content-height, 42px) + 36px);
+padding-top: calc(max(env(safe-area-inset-top, 20px), 20px) + 64px);
+
   padding-left: 16px;
   padding-right: 16px;
   padding-bottom: 18px;
