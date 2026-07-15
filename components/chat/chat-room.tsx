@@ -5209,7 +5209,7 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
         ? groupCharMap.get(msg.senderCharacterId) || character
         : character;
     if (targetChar) sendRichMessage("poke", { pokeTarget: targetChar.name });
-}} className="w-[40px] h-[40px] rounded-[6px] bg-[var(--c-input)] overflow-hidden cursor-pointer">
+}} className="w-[40px] h-[40px] rounded-[4px] bg-[var(--c-input)] overflow-hidden cursor-pointer">
     {senderChar?.avatar ? (
         <img src={senderChar.avatar} className="w-full h-full object-cover" alt="" />
     ) : (
@@ -5302,9 +5302,9 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                             </button>
                                         )}
                                         {msg.role === "user" && !isEmptyBubble && (
-    <div className="chat-msg-avatar w-[40px] h-[40px] rounded-[6px] bg-[var(--c-page-body-bg)] shrink-0 flex items-center justify-center overflow-hidden">
+    <div className="chat-msg-avatar w-[40px] h-[40px] rounded-[4px] bg-[var(--c-page-body-bg)] shrink-0 flex items-center justify-center overflow-hidden">
         {userIdentity?.avatarUrl ? (
-            <img src={userIdentity.avatarUrl} alt="Me" className="w-full h-full object-cover rounded-[6px]" />
+            <img src={userIdentity.avatarUrl} alt="Me" className="w-full h-full object-cover rounded-[4px]" />
         ) : (
             <User size={20} color="var(--c-text)" />
         )}
