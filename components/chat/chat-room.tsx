@@ -4756,8 +4756,7 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
             {/* Message List */}
                                                 <div
                 ref={scrollRef}
-                className="page-body chat-room-main-pane flex-1 overflow-y-auto flex flex-col gap-4 !pt-2 pb-4 chat-scroll-anchored"
-
+                className="page-body chat-room-main-pane flex-1 overflow-y-auto flex flex-col gap-4 pt-[60px] pb-4 chat-scroll-anchored"
 
 
                 onScroll={(e) => {
