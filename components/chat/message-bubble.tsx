@@ -573,14 +573,23 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
     const isUser = msg.role === "user";
     const wechatFontFamily = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif';
 
+    // 如果红包被领取或者退回，可以像转账一样变浅色（可选，目前保持原色）
+    const isOpened = d?.status === "opened";
+    const isDeclined = d?.status === "declined";
+    const opacity = isOpened || isDeclined ? 0.6 : 1; 
+
     return (
         <div
             className="custom-wechat-redpacket"
             style={{
                 position: "relative",
                 backgroundColor: "#FA9E3B",
-                width: "240px",
+                width: "230px", // 【修复1】将宽度改为与转账完全一致的 230px
+                padding: "14px 14px 6px 14px", // 【修复1】统一外部间距
                 borderRadius: "4px",
+                boxSizing: "border-box", // 【修复1】加入 border-box 避免被撑大
+                textAlign: "left",
+                lineHeight: "normal",
                 cursor: "pointer",
                 fontFamily: wechatFontFamily,
                 marginLeft: isUser ? "0" : "6px",
@@ -595,26 +604,36 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
                 ...(isUser ? { borderLeft: "6px solid #FA9E3B" } : { borderRight: "6px solid #FA9E3B" })
             }} />
 
-            {/* 红包主体：左侧红色小块 + 右侧文字 */}
-            <div style={{ display: "flex", alignItems: "center", padding: "14px" }}>
-                <div style={{
-                    width: "40px", height: "48px", backgroundColor: "#D74436", 
-                    borderRadius: "3px", marginRight: "12px", display: "flex", 
-                    alignItems: "center", justifyContent: "center", color: "#F7CC77",
-                    fontSize: "20px", fontWeight: "bold"
-                }}>
-                    福
-                </div>
+            {/* 红包主体：左侧图标 + 右侧文字 */}
+            <div style={{ display: "flex", alignItems: "center", paddingBottom: "11px", opacity }}>
+                {/* 【修复2】去掉了假福字，换成你提供的真实图片 */}
+                <img 
+                    src="https://img.baibai.cv/f/a7mZiR/b071d8962a6c46e695606b38b9e148be.png" 
+                    width="38" 
+                    style={{ marginRight: "12px", flexShrink: 0 }} 
+                    alt="红包图标" 
+                />
                 <div style={{ fontSize: "17px", color: "#FFFFFF", flex: 1, lineHeight: 1.3 }}>
                     {d?.label || "恭喜发财，大吉大利"}
                 </div>
             </div>
 
+            {/* 原生半透明白线 - 为了和转账气泡高度和结构彻底对齐而添加 */}
+            <div style={{ height: "1px", backgroundColor: "rgba(255, 255, 255, 0.2)", opacity }}></div>
+
             {/* 底部标识 */}
             <div style={{ 
-                padding: "0 14px 10px 14px", fontSize: "11px", color: "rgba(255, 255, 255, 0.7)" 
+                fontSize: "11px", 
+                color: "rgba(255, 255, 255, 0.8)", 
+                lineHeight: 1, 
+                paddingTop: "6px", 
+                paddingBottom: "2px", 
+                display: "flex", 
+                justifyContent: "space-between", 
+                fontWeight: 500, // 【修复3】字体加粗
+                opacity
             }}>
-                微信红包
+                <span>红包</span> {/* 【修复3】改成“红包” */}
             </div>
         </div>
     );
