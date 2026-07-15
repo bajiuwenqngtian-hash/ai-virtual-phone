@@ -4728,7 +4728,8 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                 <style dangerouslySetInnerHTML={{ __html: scopeSessionCSS(liveCSS, `.session-${session.id}`) }} />
             )}
             {/* 新顶栏：改用 sticky 占位，消除下方空白 */}
-<header className="sticky top-0 shrink-0 z-30 bg-[#EDEDED] border-b border-[#E5E5E5] flex items-center justify-between px-4 h-[60px] pt-[max(env(safe-area-inset-top,12px),12px)]" data-ui="header">
+<header className="shrink-0 w-full z-30 bg-[#EDEDED] border-b border-[#E5E5E5] flex items-center justify-between px-4 pb-1.5 pt-[max(env(safe-area-inset-top,10px),10px)]" data-ui="header">
+
     <button className="p-2 -ml-2 text-[#181818]" type="button" onClick={onBack} aria-label="返回">
         <ChevronLeft size={24} strokeWidth={1.5} />
     </button>
@@ -4751,7 +4752,10 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
 </header>
 
             {/* Message List */}
-            <div ref={scrollRef} className="page-body chat-room-main-pane flex-1 flex flex-col gap-4 chat-scroll-anchored"
+                        <div
+                ref={scrollRef}
+                className="page-body chat-room-main-pane flex-1 overflow-y-auto flex flex-col gap-4 !pt-4 pb-4 chat-scroll-anchored"
+
                 onScroll={(e) => {
                     if (activeMessageId || activeOfflineTarget) closeContextMenu();
                 }}
