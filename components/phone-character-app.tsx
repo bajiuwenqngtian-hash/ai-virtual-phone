@@ -135,7 +135,6 @@ function getCharacterTimeZoneOptions(currentTimeZone = ""): string[] {
   if (normalizedCurrentTimeZone) add(normalizedCurrentTimeZone);
   return options;
 }
-
 export function PhoneCharacterApp({ onClose, onNotice }: PhoneCharacterAppProps) {
   const [view, setView] = useState<{ type: ViewType; id: string | null; isEditing?: boolean }>({ type: "list", id: null, isEditing: false });
   const [characters, setCharacters] = useState<Character[]>(() => loadCharacters());
@@ -261,6 +260,7 @@ export function PhoneCharacterApp({ onClose, onNotice }: PhoneCharacterAppProps)
                 onNotice("档案已更新");
               } else {
                 const newChar = createCharacter(data);
+                newChar.wechatID = "";        // 👈 取消自动生成微信号
                 newChar.polaroidStyle = pendingPolaroidStyle;
                 setPendingPlacementChar(newChar);
                 setView({ type: "list", id: null, isEditing: false });
@@ -296,7 +296,6 @@ export function PhoneCharacterApp({ onClose, onNotice }: PhoneCharacterAppProps)
     </>
   );
 }
-
 // ── 过渡动效层 ───────────────────────────────────────
 
 function FlipTransitionOverlay({ transit }: { transit: TransitionState }) {
@@ -385,8 +384,6 @@ function FlipTransitionOverlay({ transit }: { transit: TransitionState }) {
     </div>
   );
 }
-
-
 // ── 列表视图（照片墙） ─────────────────────────────────────────
 
 function CharListView({
@@ -848,103 +845,101 @@ function CharListView({
       }
     }
   }
-
   function renderBgContent(item: CanvasBgItem) {
-    const hash = item.id.charCodeAt(3) + item.id.charCodeAt(item.id.length - 1) * 17;
-    const isBurnt = hash % 15 === 0;
-    const hasCrease = hash % 7 === 0;
+  const hash = item.id.charCodeAt(3) + item.id.charCodeAt(item.id.length - 1) * 17;
+  const isBurnt = hash % 15 === 0;
+  const hasCrease = hash % 7 === 0;
 
-    let content;
-    let baseClass = "";
-    let extraAttrs: Record<string, string> = {};
+  let content;
+  let baseClass = "";
+  let extraAttrs: Record<string, string> = {};
 
-    if (item.type === 'a4') {
-      baseClass = "char-paper-a4";
-      content = (
-        <>
-          {hasCrease && <div className="char-paper-crease" />}
-          <div className="char-paper-header">
-            <span>Dept of Truth</span>
-            <span>REF:{hash.toString(16).toUpperCase()}</span>
-          </div>
-          <div className="char-barcode" />
-          <div className="char-paper-paragraph">
-            <strong>SUBJECT:</strong> Anomalous entity detected.
-          </div>
-          <div className="char-paper-paragraph relative">
-            All field agents must maintain high alert.
-            {hash % 4 === 0 && <div className="char-marker-circle" />}
-          </div>
-          {hash % 2 === 0 && <div className="char-stamp-red" style={{ top: 120, right: 10 }}>RESTRICTED</div>}
-          {hash % 3 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 20, right: 10 }}>* Verify ASAP *</div>}
-        </>
-      );
-    } else if (item.type === 'yellow-note') {
-      baseClass = "char-sticky-note";
-      extraAttrs = { "data-color": "yellow" };
-      content = (
-        <>
-          <div className="font-bold mb-1">REMINDER:</div>
-          <ul className="char-checkbox-list">
-            <li><span className="char-checkbox-box checked" /> Check logs</li>
-            <li><span className="char-checkbox-box" /> Verify target</li>
-          </ul>
-          {hash % 5 === 0 && <div className="char-handwriting" style={{ bottom: -5, left: 10 }}>Who is this??</div>}
-        </>
-      );
-    } else if (item.type === 'blue-note') {
-      baseClass = "char-sticky-note";
-      extraAttrs = { "data-color": "blue" };
-      content = (
-        <>
-          <div className="font-bold border-b border-[#999] pb-0.5 mb-1">ROUTING SLIP</div>
-          <div><strong>TO:</strong> Agent {hash % 99}</div>
-          <div className="mt-2">Needs clearance.</div>
-          {hash % 2 !== 0 && <div className="char-stamp-red" style={{ top: 20, right: -15, fontSize: "calc(12px*var(--app-text-scale,1))", transform: 'rotate(10deg)' }}>URGENT</div>}
-        </>
-      );
-    } else if (item.type === 'torn') {
-      baseClass = "char-paper-torn";
-      content = (
-        <>
-          <div className="font-bold mb-1">Log Day {hash % 30}</div>
-          <div className="char-paper-paragraph">
-            Subject exhibited <span className="char-redacted">unusual</span> behavior.
-          </div>
-          {hash % 4 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 5, right: -10 }}>Liar.</div>}
-        </>
-      );
-    } else if (item.type === 'grid') {
-      baseClass = "char-paper-grid";
-      content = (
-        <>
-          {hasCrease && <div className="char-paper-crease" />}
-          <div className="border-b border-[var(--c-panel-border)] mb-1"><strong>COORDINATES:</strong></div>
-          <div className="ts-14 font-mono relative">
-            [{hash % 90} N, {hash % 180} W]
-            {hash % 3 === 0 && <div className="char-marker-circle" style={{ borderColor: '#000080' }} />}
-          </div>
-          <div className="char-barcode mt-2 h-4" />
-        </>
-      );
-    } else {
-      baseClass = "char-paper-scrap";
-      content = (
-        <>
-          <strong>EVIDENCE 0X4A-{hash % 10}</strong>
-          <div className="char-redacted mt-1">[EXPUNGED]</div>
-        </>
-      );
-    }
-
-    return (
-      <div className={`char-bg-item ${baseClass} ${isBurnt ? 'char-burnt-edges' : ''}`} {...extraAttrs}>
-        {content}
-      </div>
+  if (item.type === 'a4') {
+    baseClass = "char-paper-a4";
+    content = (
+      <>
+        {hasCrease && <div className="char-paper-crease" />}
+        <div className="char-paper-header">
+          <span>Dept of Truth</span>
+          <span>REF:{hash.toString(16).toUpperCase()}</span>
+        </div>
+        <div className="char-barcode" />
+        <div className="char-paper-paragraph">
+          <strong>SUBJECT:</strong> Anomalous entity detected.
+        </div>
+        <div className="char-paper-paragraph relative">
+          All field agents must maintain high alert.
+          {hash % 4 === 0 && <div className="char-marker-circle" />}
+        </div>
+        {hash % 2 === 0 && <div className="char-stamp-red" style={{ top: 120, right: 10 }}>RESTRICTED</div>}
+        {hash % 3 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 20, right: 10 }}>* Verify ASAP *</div>}
+      </>
+    );
+  } else if (item.type === 'yellow-note') {
+    baseClass = "char-sticky-note";
+    extraAttrs = { "data-color": "yellow" };
+    content = (
+      <>
+        <div className="font-bold mb-1">REMINDER:</div>
+        <ul className="char-checkbox-list">
+          <li><span className="char-checkbox-box checked" /> Check logs</li>
+          <li><span className="char-checkbox-box" /> Verify target</li>
+        </ul>
+        {hash % 5 === 0 && <div className="char-handwriting" style={{ bottom: -5, left: 10 }}>Who is this??</div>}
+      </>
+    );
+  } else if (item.type === 'blue-note') {
+    baseClass = "char-sticky-note";
+    extraAttrs = { "data-color": "blue" };
+    content = (
+      <>
+        <div className="font-bold border-b border-[#999] pb-0.5 mb-1">ROUTING SLIP</div>
+        <div><strong>TO:</strong> Agent {hash % 99}</div>
+        <div className="mt-2">Needs clearance.</div>
+        {hash % 2 !== 0 && <div className="char-stamp-red" style={{ top: 20, right: -15, fontSize: "calc(12px*var(--app-text-scale,1))", transform: 'rotate(10deg)' }}>URGENT</div>}
+      </>
+    );
+  } else if (item.type === 'torn') {
+    baseClass = "char-paper-torn";
+    content = (
+      <>
+        <div className="font-bold mb-1">Log Day {hash % 30}</div>
+        <div className="char-paper-paragraph">
+          Subject exhibited <span className="char-redacted">unusual</span> behavior.
+        </div>
+        {hash % 4 === 0 && <div className="char-handwriting red-ink" style={{ bottom: 5, right: -10 }}>Liar.</div>}
+      </>
+    );
+  } else if (item.type === 'grid') {
+    baseClass = "char-paper-grid";
+    content = (
+      <>
+        {hasCrease && <div className="char-paper-crease" />}
+        <div className="border-b border-[var(--c-panel-border)] mb-1"><strong>COORDINATES:</strong></div>
+        <div className="ts-14 font-mono relative">
+          [{hash % 90} N, {hash % 180} W]
+          {hash % 3 === 0 && <div className="char-marker-circle" style={{ borderColor: '#000080' }} />}
+        </div>
+        <div className="char-barcode mt-2 h-4" />
+      </>
+    );
+  } else {
+    baseClass = "char-paper-scrap";
+    content = (
+      <>
+        <strong>EVIDENCE 0X4A-{hash % 10}</strong>
+        <div className="char-redacted mt-1">[EXPUNGED]</div>
+      </>
     );
   }
 
   return (
+    <div className={`char-bg-item ${baseClass} ${isBurnt ? 'char-burnt-edges' : ''}`} {...extraAttrs}>
+      {content}
+    </div>
+  );
+  }
+    return (
     <>
       <PageShell
         title={<strong style={{ fontWeight: 900, fontFamily: 'Impact, "Arial Black", sans-serif', fontSize: '1.15em', letterSpacing: '0.04em' }}>卷宗</strong>}
@@ -1136,12 +1131,12 @@ function CharListView({
                     <g transform={`translate(${x1}, ${y1})`}>
                       <circle cx="1.5" cy="2" r="4.5" fill="rgba(0,0,0,0.12)" />
                       <circle cx="0" cy="0" r="4.5" fill="#111111" />
-                      <circle cx="-1.5" cy="-1.5" r="1.5" fill="#555555" opacity="0.9" />
+                      <circle cx="-1.5" cy="-1.5" r="1.5" fill="#555555" opacity={0.9} />
                     </g>
                     <g transform={`translate(${x2}, ${y2})`}>
                       <circle cx="1.5" cy="2" r="4.5" fill="rgba(0,0,0,0.12)" />
                       <circle cx="0" cy="0" r="4.5" fill="#111111" />
-                      <circle cx="-1.5" cy="-1.5" r="1.5" fill="#555555" opacity="0.9" />
+                      <circle cx="-1.5" cy="-1.5" r="1.5" fill="#555555" opacity={0.9} />
                     </g>
                     {/* 关系标签 */}
                     <foreignObject
@@ -1518,8 +1513,7 @@ function CharListView({
       )}
     </>
   );
-}
-
+                                   }
 // ── Draggable 组件封装 ───────────────────────────────────
 
 function DraggableNode({
@@ -1674,9 +1668,7 @@ function DraggableNode({
         {children}
       </div>
     );
-  }
-
-
+         }
 // ── 绝密档案视图（详情页面） ─────────────────────────────────────────
 
 function CharArchiveView({
@@ -1718,6 +1710,7 @@ function CharArchiveView({
   const [avatar, setAvatar] = useState<string | null>(char.avatar || null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [wechatID, setWechatID] = useState(char.wechatID || "");   // 👈 新增微信号状态
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -1756,27 +1749,6 @@ function CharArchiveView({
     };
   }, []);
 
-  function isDirty(): boolean {
-    if (!isEditing) return false;
-    if (name !== (char.name || "")) return true;
-    if (persona !== (char.persona || "")) return true;
-    if (personality !== (char.personality || "")) return true;
-    if (briefPersona !== (char.briefPersona || "")) return true;
-    if (timeZone !== (char.timeZone || "")) return true;
-    if (avatar !== (char.avatar || null)) return true;
-    const origTags = char.tags || [];
-    if (tags.length !== origTags.length || tags.some((t, i) => t !== origTags[i])) return true;
-    return false;
-  }
-
-  function handleBack() {
-    if (isDirty()) {
-      setShowUnsavedConfirm("back");
-    } else {
-      onBack();
-    }
-  }
-
   useEffect(() => {
     if (!isEditing) {
       setName(char.name || "");
@@ -1789,8 +1761,31 @@ function CharArchiveView({
       setShowTimeZonePicker(false);
       setTags(char.tags || []);
       setAvatar(char.avatar || null);
+      setWechatID(char.wechatID || "");   // 👈 新增：重置微信号
     }
   }, [isEditing, char]);
+
+  function isDirty(): boolean {
+    if (!isEditing) return false;
+    if (name !== (char.name || "")) return true;
+    if (persona !== (char.persona || "")) return true;
+    if (personality !== (char.personality || "")) return true;
+    if (briefPersona !== (char.briefPersona || "")) return true;
+    if (timeZone !== (char.timeZone || "")) return true;
+    if (avatar !== (char.avatar || null)) return true;
+    if (wechatID !== (char.wechatID || "")) return true;   // 👈 新增：微信号变化检测
+    const origTags = char.tags || [];
+    if (tags.length !== origTags.length || tags.some((t, i) => t !== origTags[i])) return true;
+    return false;
+  }
+
+  function handleBack() {
+    if (isDirty()) {
+      setShowUnsavedConfirm("back");
+    } else {
+      onBack();
+    }
+  }
 
   async function handleAvatarFile(file: File) {
     const url = await fileToDataUrl(file);
@@ -1829,7 +1824,8 @@ function CharArchiveView({
           : undefined,
         timeZone: normalizedTimeZone,
         tags,
-        avatar: avatar ?? null
+        avatar: avatar ?? null,
+        wechatID: wechatID.trim() || undefined,   // 👈 新增：保存微信号
       });
     }
   }
@@ -1888,7 +1884,8 @@ function CharArchiveView({
     setShowTimeZonePicker(false);
   }
 
-  const archiveFrame = (
+  // 接下来是 return 部分（块 9）
+    const archiveFrame = (
       <div className="char-archive-frame">
         <div className="char-archive-stamp">机密</div>
 
@@ -1989,11 +1986,21 @@ function CharArchiveView({
                 <span className="char-archive-label">状态</span>
                 <span className="char-archive-val">{isEditing ? "编辑中" : "活跃"}</span>
               </div>
+              {/* 👇 修改：微信区域变为可编辑输入框 */}
               <div className="char-archive-cell" style={{ flex: 1.5 }}>
                 <span className="char-archive-label">微信</span>
-                <span className="char-archive-val select-text cursor-text tracking-[-0.5px]">
-                  {char.wechatID || "未设置"}
-                </span>
+                {isEditing ? (
+                  <input
+                    className="char-archive-input ts-14 w-full bg-[var(--c-input)]/50 border border-dashed border-[#666] px-1 py-0.5 font-inherit"
+                    value={wechatID}
+                    onChange={(e) => setWechatID(e.target.value)}
+                    placeholder="微信号"
+                  />
+                ) : (
+                  <span className="char-archive-val select-text cursor-text tracking-[-0.5px]">
+                    {char.wechatID || "未设置"}
+                  </span>
+                )}
               </div>
               <div className="char-archive-cell" style={{ flex: 1.1 }}>
                 <span className="char-archive-label">更新</span>
@@ -2264,7 +2271,6 @@ function CharArchiveView({
     </PageShell>
   );
 }
-
 // ── 共享子组件 ───────────────────────────────────────
 
 function CharAvatarFallback({
@@ -2611,5 +2617,4 @@ function NpcGeneratorSheet({ characters, onClose, onConfirm }: {
     </div>
     </div>
   );
-}
-
+        }
