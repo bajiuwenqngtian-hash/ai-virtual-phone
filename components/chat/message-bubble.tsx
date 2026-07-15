@@ -619,29 +619,67 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
     const isReceived = d?.status === "received";
     const isDeclined = d?.status === "declined";
 
-    const bgClass = isDeclined
-        ? "bg-declined-gradient"
-        : isReceived ? "bg-opened-gradient" : "bg-transfer-gradient";
+    // 微信原生颜色：已收/退回颜色变浅，未收为原生纯橙色
+    const bgColor = isDeclined || isReceived ? "#F9E2C6" : "#F79C21";
+    // 图标与文字在处理后会有透明度变化
+    const iconOpacity = isDeclined || isReceived ? 0.5 : 1;
+    const textOpacity = isDeclined || isReceived ? 0.6 : 1;
+
+    // 判断是自己发出的，还是对方发出的
+    const isUser = msg.role === "user";
 
     return (
         <div
-            className="chat-transfer-card w-[240px] rounded-xl overflow-hidden cursor-pointer"
+            style={{
+                position: "relative",
+                backgroundColor: bgColor,
+                width: "230px",
+                padding: "14px 14px 6px 14px",
+                borderRadius: "4px",
+                boxSizing: "border-box",
+                textAlign: "left",
+                lineHeight: "normal",
+                cursor: "pointer",
+                // 留出尖角的空间，防止被父级容器裁切
+                marginLeft: isUser ? "0" : "6px",
+                marginRight: isUser ? "6px" : "0",
+            }}
             onClick={() => onShowDetail?.(msg)}
         >
-            <div className={`chat-transfer-body p-4 flex items-center gap-3 ${bgClass}`}>
-                <div className="ts-28 shrink-0">💰</div>
-                <div className="flex-1">
-                    <div className="text-white ts-24 font-bold">¥{d?.amount?.toFixed(2)}</div>
-                    <div className="ts-13 mt-0.5 ui-text-white-85">{d?.label || "转账"}</div>
+            {/* 微信原生小尖角 */}
+            <div style={{
+                position: "absolute",
+                top: "16px",
+                [isUser ? "right" : "left"]: "-5px",
+                width: 0,
+                height: 0,
+                borderTop: "5px solid transparent",
+                borderBottom: "5px solid transparent",
+                ...(isUser
+                    ? { borderLeft: `6px solid ${bgColor}` }
+                    : { borderRight: `6px solid ${bgColor}` }
+                )
+            }} />
+
+            {/* 核心内容区：图标与金额 */}
+            <div style={{ display: "inline-block", verticalAlign: "top", opacity: iconOpacity }}>
+                <img src="https://s1.imagehub.cc/images/2025/07/29/370e7d4202634cb69f2ba0c6f7ba41fd.png" width="38" style={{ verticalAlign: "top", marginRight: "12px", marginTop: "2px" }} alt="转账图标" />
+            </div>
+            
+            <div style={{ display: "inline-block", verticalAlign: "top", opacity: textOpacity }}>
+                <div style={{ fontSize: "19px", color: "#FFFFFF", fontWeight: 500, lineHeight: 1.1 }}>
+                    ¥{d?.amount?.toFixed(2) || "0.00"}
+                </div>
+                <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", lineHeight: 1.2, marginTop: "4px" }}>
+                    {d?.label || "转账"}
                 </div>
             </div>
-            {d?.recipientName && (
-                <div className={`px-4 py-1 ts-12 ui-text-white-70 ${bgClass}`}>转给 {d.recipientName}</div>
-            )}
-            <div
-                className="ui-media-footer px-4 py-2 ts-12 flex justify-between items-center"
-                {...(isDeclined ? { "data-status": "declined" } : {})}
-            >
+
+            {/* 原生半透明白线 */}
+            <div style={{ height: "1px", backgroundColor: "rgba(255, 255, 255, 0.2)", margin: "12px 0 6px 0" }}></div>
+
+            {/* 底部文字：包含状态 */}
+            <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.65)", lineHeight: 1, display: "flex", justifyContent: "space-between" }}>
                 <span>微信转账</span>
                 {isReceived && <span>已收款</span>}
                 {isDeclined && <span>已退回</span>}
@@ -649,6 +687,7 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
         </div>
     );
 }
+
 
 // ── Payment Request ─────────────────────────────
 
