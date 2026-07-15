@@ -5205,17 +5205,18 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                                         return (
                                                             <>
                                                     <div onDoubleClick={() => {
-                                                        const targetChar = session.isGroup && msg.senderCharacterId
-                                                            ? groupCharMap.get(msg.senderCharacterId) || character
-                                                            : character;
-                                                        if (targetChar) sendRichMessage("poke", { pokeTarget: targetChar.name });
-                                                    }} className="w-[40px] h-[40px] rounded-[20px] bg-[var(--c-input)] overflow-hidden cursor-pointer">
-                                                        {senderChar?.avatar ? (
-                                                            <img src={senderChar.avatar} className="w-full h-full object-cover" alt="" />
-                                                        ) : (
-                                                            <ChatFallbackAvatar />
-                                                        )}
-                                                    </div>
+    const targetChar = session.isGroup && msg.senderCharacterId
+        ? groupCharMap.get(msg.senderCharacterId) || character
+        : character;
+    if (targetChar) sendRichMessage("poke", { pokeTarget: targetChar.name });
+}} className="w-[40px] h-[40px] rounded-[6px] bg-[var(--c-input)] overflow-hidden cursor-pointer">
+    {senderChar?.avatar ? (
+        <img src={senderChar.avatar} className="w-full h-full object-cover" alt="" />
+    ) : (
+        <ChatFallbackAvatar />
+    )}
+</div>
+
                                                             </>
                                                         );
                                                     })()}
@@ -5301,14 +5302,15 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                             </button>
                                         )}
                                         {msg.role === "user" && !isEmptyBubble && (
-                                            <div className="chat-msg-avatar w-[40px] h-[40px] rounded-[20px] bg-[var(--c-page-body-bg)] shrink-0 flex items-center justify-center overflow-hidden">
-                                                {userIdentity?.avatarUrl ? (
-                                                    <img src={userIdentity.avatarUrl} alt="Me" className="w-full h-full object-cover rounded-[20px]" />
-                                                ) : (
-                                                    <User size={20} color="var(--c-text)" />
-                                                )}
-                                            </div>
-                                        )}
+    <div className="chat-msg-avatar w-[40px] h-[40px] rounded-[6px] bg-[var(--c-page-body-bg)] shrink-0 flex items-center justify-center overflow-hidden">
+        {userIdentity?.avatarUrl ? (
+            <img src={userIdentity.avatarUrl} alt="Me" className="w-full h-full object-cover rounded-[6px]" />
+        ) : (
+            <User size={20} color="var(--c-text)" />
+        )}
+    </div>
+)}
+
                                     </>
                                 )}
                             </div>
