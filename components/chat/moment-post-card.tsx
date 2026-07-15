@@ -117,7 +117,7 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const isLikedByUser = post.likes.some(l => l.authorType === "user");
     const momentsConfig = loadMomentsConfig();
     const defaultTranslationExpanded = momentsConfig.collapseBilingualTranslation === true ? false : true;
-const handleLike = () => {
+    const handleLike = () => {
     toggleMomentLike(post.id, "user", "user");
     onUpdate();
 };
@@ -459,16 +459,15 @@ return (
                                                 )}
                                             </div>
                                         </div>
-                                        {/* 【核心修复】：将回复列表放大、缩进修正 */}
+                                        {/* 【核心修复】：将内部的 pl-[52px] 彻底移除，改为 pl-0，这样下方回复就会与父级精准左对齐 */}
                                         {replies.length > 0 && (
-                                            <div className="feed-comment-replies flex flex-col gap-1 w-full mt-1 pl-[52px]">
+                                            <div className="feed-comment-replies flex flex-col gap-1 w-full mt-1 pl-0">
                                                 {replies.map((reply) => {
                                                     const replyName = getAuthorName(reply.authorType, reply.authorId, reply.authorName);
                                                     const replyAvatar = getAuthorAvatar(reply.authorType, reply.authorId);
                                                     const replyTargetName = reply.replyToAuthorId ? getAuthorName(reply.replyToAuthorType || "character", reply.replyToAuthorId, reply.replyToAuthorName) : null;
                                                     return (
                                                         <div key={reply.id} className="feed-comment feed-comment-child flex items-start gap-2 cursor-pointer relative" onClick={(event) => handleCommentPress(reply, event)}>
-                                                            {/* 将 w-[22px] h-[22px] 改为 w-[32px] h-[32px] 统一大小。并去掉头像的 mt-[2px]，让其按 items-start 严格顶端对齐 */}
                                                             <div className="feed-comment-avatar feed-comment-avatar-child w-[32px] h-[32px] rounded-[4px] shrink-0 bg-[var(--c-input)] overflow-hidden flex items-center justify-center">
                                                                 {replyAvatar ? <img src={replyAvatar} alt="" className="feed-comment-avatar-image w-full h-full object-cover" /> : <MomentDefaultAvatar />}
                                                             </div>
@@ -477,7 +476,6 @@ return (
                                                                 e.stopPropagation();
                                                                 setCommentMoreMenuId(prev => prev === reply.id ? null : reply.id);
                                                             }}>
-                                                                {/* 文字同步添加 mt-[2px] 实现头顶与 32px 头像平行 */}
                                                                 <div className="flex justify-between items-start w-full">
                                                                     <span className="feed-comment-author font-bold text-[#576b95] opacity-100 mt-[2px]">{replyName}</span>
                                                                     <span className="feed-comment-time ts-12 text-[var(--c-icon)] whitespace-nowrap ml-1 mt-[2px]">{formatTimeAgo(reply.createdAt)}</span>
