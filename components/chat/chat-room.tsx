@@ -4757,9 +4757,7 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
 </header>
 
             {/* Message List */}
-            <div
-                ref={scrollRef}
-                className="page-body chat-room-main-pane flex flex-col gap-4 chat-scroll-anchored"
+            <div ref={scrollRef} className="page-body chat-room-main-pane flex-1 flex flex-col gap-4 chat-scroll-anchored pt-[60px]"
                 onScroll={(e) => {
                     if (activeMessageId || activeOfflineTarget) closeContextMenu();
                 }}
