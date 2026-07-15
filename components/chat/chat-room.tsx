@@ -5275,12 +5275,12 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                                 defaultTranslationExpanded={session.collapseBilingualTranslation !== false ? false : true}
                                             />
                                         </div>
-                                        {/* 微信原生风格的独立引用小尾巴 */}
+                                                                                {/* 微信原生风格的独立引用小尾巴 */}
                                         {renderMsg.mediaType === "quote" && renderMsg.mediaData?.quotePreview && (
                                             <div
-                                                className={`mt-[2px] text-[12px] text-black/40 bg-black/5 px-2 py-[2px] rounded-[4px] max-w-full truncate ${msg.role === "user" ? "self-end" : "self-start"}`}
+                                                className={`mt-[6px] text-[12px] text-black/40 bg-black/5 px-2 py-[3px] rounded-[3px] max-w-full truncate ${msg.role === "user" ? "self-end" : "self-start"}`}
                                             >
-                                                {renderMsg.mediaData.quotePreview}
+                                                {renderMsg.mediaData.quoteRole === "user" ? "你" : (renderMsg.senderName || character?.name || "对方")}: {renderMsg.mediaData.quotePreview}
                                             </div>
                                         )}
                                         </div>}
