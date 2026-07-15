@@ -117,7 +117,7 @@ export function MomentPostCard({ post, onUpdate, onRequestDelete, onOpenCommentC
     const isLikedByUser = post.likes.some(l => l.authorType === "user");
     const momentsConfig = loadMomentsConfig();
     const defaultTranslationExpanded = momentsConfig.collapseBilingualTranslation === true ? false : true;
-const handleLike = () => {
+    const handleLike = () => {
     toggleMomentLike(post.id, "user", "user");
     onUpdate();
 };
@@ -399,8 +399,8 @@ return (
             <div className="feed-post-action-row flex items-center justify-between ml-[52px] mt-[2px] mb-2">
                 <span className="feed-post-time ts-13 text-[var(--c-icon)]">{timeAgo}</span>
                 <div className="flex items-center relative">
-                    {/* 【核心修复】：将原来的三个点（MoreHorizontal）改为了自定义的两个点。 */}
-                    <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] px-3 py-1 transition-colors">
+                    {/* 【核心修复】：移除 py-1 改为固定 h-[28px] min-w-[36px]。现在灰底是标准的长方形，不再被压扁 */}
+                    <button ref={menuBtnRef} onClick={() => setShowBottomMenu(!showBottomMenu)} className="flex items-center justify-center bg-[#f0f0f0] hover:bg-[#e8e8e8] rounded-[6px] h-[28px] min-w-[36px] transition-colors">
                         <div className="flex items-center gap-[5px] text-[#576b95]">
                             <div className="w-[4px] h-[4px] rounded-full bg-current"></div>
                             <div className="w-[4px] h-[4px] rounded-full bg-current"></div>
@@ -535,4 +535,4 @@ function formatTimeAgo(isoStr: string): string {
     if (diff < 172800) return "昨天";
     if (diff < 604800) return `${Math.floor(diff / 86400)}天前`;
     const d = new Date(isoStr); return `${d.getMonth() + 1}月${d.getDate()}日`;
-}
+                                                             }
