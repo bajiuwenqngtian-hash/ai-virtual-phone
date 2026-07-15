@@ -5271,11 +5271,20 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                                     setMessages(prev => [...prev, sysMsg]);
                                                 }}
                                                 onMusicPlay={handleMusicCardPlay}
-                                                onActionSelect={(text) => chatTextInputRef.current?.appendText(text)}
+                                                                                                onActionSelect={(text) => chatTextInputRef.current?.appendText(text)}
                                                 defaultTranslationExpanded={session.collapseBilingualTranslation !== false ? false : true}
                                             />
                                         </div>
+                                        {/* 微信原生风格的独立引用小尾巴 */}
+                                        {renderMsg.mediaType === "quote" && renderMsg.mediaData?.quotePreview && (
+                                            <div
+                                                className={`mt-[2px] text-[12px] text-black/40 bg-black/5 px-2 py-[2px] rounded-[4px] max-w-full truncate ${msg.role === "user" ? "self-end" : "self-start"}`}
+                                            >
+                                                {renderMsg.mediaData.quotePreview}
+                                            </div>
+                                        )}
                                         </div>}
+
                                         {msg.role !== "user" && !isSilentThought && !isEmptyBubble && hasFoldedPanel && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setExpandedThinkingId(prev => prev === msg.id ? null : msg.id); }}
