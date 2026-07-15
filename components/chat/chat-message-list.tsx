@@ -125,7 +125,7 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
                                         <button onClick={() => { setIsSearchActive(!isSearchActive); setShowPlusMenu(false); }} className="w-10 h-10 flex items-center justify-center text-[#181818]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                             <circle cx="10.5" cy="10.5" r="7.5"/>
-                            <path d="M16 16L22 22" strokeLinecap="round"/>
+                            <path d="M16 16L21 21" strokeLinecap="round"/>
                         </svg>
                     </button>
                     <span className="relative" ref={plusMenuRef}>
