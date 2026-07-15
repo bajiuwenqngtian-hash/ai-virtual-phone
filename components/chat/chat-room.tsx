@@ -4727,14 +4727,11 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
             {liveCSS && (
                 <style dangerouslySetInnerHTML={{ __html: scopeSessionCSS(liveCSS, `.session-${session.id}`) }} />
             )}
-            {/* 新顶栏：仿微信主界面宽度，完美垂直居中 */}
-<header className="absolute top-0 left-0 right-0 z-30 bg-[#EDEDED] border-b border-[#E5E5E5] flex items-center justify-between px-4 h-[60px] pt-[max(env(safe-area-inset-top,12px),12px)]" data-ui="header">
-    {/* 左侧返回按钮，增加了点击范围，完美对齐 */}
+            {/* 新顶栏：改用 sticky 占位，消除下方空白 */}
+<header className="sticky top-0 shrink-0 z-30 bg-[#EDEDED] border-b border-[#E5E5E5] flex items-center justify-between px-4 h-[60px] pt-[max(env(safe-area-inset-top,12px),12px)]" data-ui="header">
     <button className="p-2 -ml-2 text-[#181818]" type="button" onClick={onBack} aria-label="返回">
         <ChevronLeft size={24} strokeWidth={1.5} />
     </button>
-    
-    {/* 中间的名字和“正在输入”状态，用 flex 垂直居中对齐 */}
     <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
         <span className="font-medium text-[17px] text-[#000000] truncate max-w-full">
             {offlineMode ? "线下 · " : ""}
@@ -4742,22 +4739,19 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                 ? `${session.groupName || "群聊"}(${(session.participantIds?.length || 0) + (session.isSpectator ? 0 : 1)})`
                 : (session.alias || character?.name || `User_${session.contactId.slice(-4)}`)}
         </span>
-        {/* 让“正在输入...”跟随在名字正下方，体验更接近微信 */}
         {(isGenerating || isOfflineGenerating) && (
             <span className="text-[#999] text-[11px] flex items-center gap-1 mt-[2px]">
                 {offlineMode ? "线下生成中" : "对方正在输入"}<span className="chat-typing-dots"><i/><i/><i/></span>
             </span>
         )}
     </div>
-
-    {/* 右侧更多按钮 */}
     <button className="p-2 -mr-2 text-[#181818]" type="button" onClick={() => setShowSettings(true)} aria-label="更多">
         <MoreHorizontal size={22} strokeWidth={1.5} />
     </button>
 </header>
 
             {/* Message List */}
-            <div ref={scrollRef} className="page-body chat-room-main-pane flex-1 flex flex-col gap-4 chat-scroll-anchored pt-[60px]"
+            <div ref={scrollRef} className="page-body chat-room-main-pane flex-1 flex flex-col gap-4 chat-scroll-anchored"
                 onScroll={(e) => {
                     if (activeMessageId || activeOfflineTarget) closeContextMenu();
                 }}
