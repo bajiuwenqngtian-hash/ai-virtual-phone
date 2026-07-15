@@ -1470,18 +1470,13 @@ function StickerBubble({ msg, characterId }: { msg: ChatMessage; characterId?: s
 // ── Quote ─────────────────────────────
 
 function QuoteBubble({ msg, displayContent, defaultTranslationExpanded = false }: { msg: ChatMessage; displayContent?: string; defaultTranslationExpanded?: boolean }) {
-    const d = msg.mediaData;
     return (
         <div className="chat-quote-message max-w-full">
-            {d?.quotePreview && (
-                <div className="chat-quote-preview bg-black/[0.06] border-l-[3px] border-l-black/15 px-2.5 py-1.5 ts-12 text-[var(--c-icon)] mb-1.5 rounded-r-[6px] truncate max-w-full">
-                    {d.quotePreview}
-                </div>
-            )}
             {msg.content && <TextBubble content={displayContent ?? msg.content} defaultTranslationExpanded={defaultTranslationExpanded} />}
         </div>
     );
 }
+
 
 
 // ── Media Detail Modal (red packet / transfer) ─────────────────────────────
