@@ -573,7 +573,6 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
     const isUser = msg.role === "user";
     const wechatFontFamily = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif';
 
-    // 如果红包被领取或者退回，可以像转账一样变浅色（可选，目前保持原色）
     const isOpened = d?.status === "opened";
     const isDeclined = d?.status === "declined";
     const opacity = isOpened || isDeclined ? 0.6 : 1; 
@@ -584,16 +583,15 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
             style={{
                 position: "relative",
                 backgroundColor: "#FA9E3B",
-                width: "230px", // 【修复1】将宽度改为与转账完全一致的 230px
-                padding: "14px 14px 6px 14px", // 【修复1】统一外部间距
+                width: "214px", // 【同步修改】保持和转账一样的大小
+                padding: "12px 12px 6px 12px", // 【同步修改】保持和转账一样的内边距
                 borderRadius: "4px",
-                boxSizing: "border-box", // 【修复1】加入 border-box 避免被撑大
+                boxSizing: "border-box",
                 textAlign: "left",
                 lineHeight: "normal",
                 cursor: "pointer",
                 fontFamily: wechatFontFamily,
-                marginLeft: isUser ? "0" : "6px",
-                marginRight: isUser ? "6px" : "0",
+                // 【同步修改】删除了 marginLeft 和 marginRight
             }}
             onClick={() => onShowDetail?.(msg)}
         >
@@ -606,19 +604,18 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
 
             {/* 红包主体：左侧图标 + 右侧文字 */}
             <div style={{ display: "flex", alignItems: "center", paddingBottom: "11px", opacity }}>
-                {/* 【修复2】去掉了假福字，换成你提供的真实图片 */}
                 <img 
                     src="https://img.baibai.cv/f/a7mZiR/b071d8962a6c46e695606b38b9e148be.png" 
-                    width="38" 
-                    style={{ marginRight: "12px", flexShrink: 0 }} 
+                    width="36" 
+                    style={{ marginRight: "10px", flexShrink: 0 }} 
                     alt="红包图标" 
                 />
-                <div style={{ fontSize: "17px", color: "#FFFFFF", flex: 1, lineHeight: 1.3 }}>
+                <div style={{ fontSize: "15px", color: "#FFFFFF", flex: 1, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {d?.label || "恭喜发财，大吉大利"}
                 </div>
             </div>
 
-            {/* 原生半透明白线 - 为了和转账气泡高度和结构彻底对齐而添加 */}
+            {/* 原生半透明白线 */}
             <div style={{ height: "1px", backgroundColor: "rgba(255, 255, 255, 0.2)", opacity }}></div>
 
             {/* 底部标识 */}
@@ -630,10 +627,10 @@ function RedPacketBubble({ msg, charName, userName, groupSize, onShowDetail }: {
                 paddingBottom: "2px", 
                 display: "flex", 
                 justifyContent: "space-between", 
-                fontWeight: 500, // 【修复3】字体加粗
+                fontWeight: 500,
                 opacity
             }}>
-                <span>红包</span> {/* 【修复3】改成“红包” */}
+                <span>红包</span>
             </div>
         </div>
     );
@@ -656,25 +653,23 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
     const textOpacity = isDeclined || isReceived ? 0.6 : 1;
     const isUser = msg.role === "user";
 
-    // 核心优化 1：引入微信同款系统原生字体栈
     const wechatFontFamily = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif';
 
     return (
         <div
-            className="custom-wechat-transfer" // 加了类名，以后可以直接在外部 CSS 里调样式
+            className="custom-wechat-transfer"
             style={{
                 position: "relative",
                 backgroundColor: bgColor,
-                width: "230px",
-                padding: "14px 14px 6px 14px",
+                width: "214px", // 【优化点】宽度从 230px 缩小到 214px
+                padding: "12px 12px 6px 12px", // 【优化点】配合缩小的宽度，内边距微调得更紧凑
                 borderRadius: "4px",
                 boxSizing: "border-box",
                 textAlign: "left",
                 lineHeight: "normal",
                 cursor: "pointer",
-                marginLeft: isUser ? "0" : "6px",
-                marginRight: isUser ? "6px" : "0",
-                fontFamily: wechatFontFamily, // 应用系统字体
+                fontFamily: wechatFontFamily,
+                // 【修复点】彻底删除了 marginLeft 和 marginRight，解决对不齐的问题！
             }}
             onClick={() => onShowDetail?.(msg)}
         >
@@ -697,13 +692,13 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
 
             {/* 上半部：图标与金额 */}
             <div style={{ display: "flex", alignItems: "center", paddingBottom: "11px", opacity: iconOpacity }}>
-                <img src="https://s1.imagehub.cc/images/2025/07/29/370e7d4202634cb69f2ba0c6f7ba41fd.png" width="38" style={{ marginRight: "12px", flexShrink: 0 }} alt="转账图标" />
+                <img src="https://s1.imagehub.cc/images/2025/07/29/370e7d4202634cb69f2ba0c6f7ba41fd.png" width="36" style={{ marginRight: "10px", flexShrink: 0 }} alt="转账图标" />
                 
-                <div style={{ display: "flex", flexDirection: "column", opacity: textOpacity }}>
-                    <div style={{ fontSize: "19px", color: "#FFFFFF", fontWeight: 500, lineHeight: 1.1, letterSpacing: "0.5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", opacity: textOpacity, minWidth: 0 }}>
+                    <div style={{ fontSize: "17px", color: "#FFFFFF", fontWeight: 500, lineHeight: 1.1, letterSpacing: "0.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         ¥{d?.amount?.toFixed(2) || "0.00"}
                     </div>
-                    <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", lineHeight: 1.2, marginTop: "4px" }}>
+                    <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", lineHeight: 1.2, marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {d?.label || "转账"}
                     </div>
                 </div>
@@ -715,13 +710,13 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
             {/* 底部文字 */}
             <div style={{ 
                 fontSize: "11px", 
-                color: "rgba(255, 255, 255, 0.8)", // 稍微调亮一点以配合加粗
+                color: "rgba(255, 255, 255, 0.8)", 
                 lineHeight: 1, 
                 paddingTop: "6px", 
                 paddingBottom: "2px", 
                 display: "flex", 
                 justifyContent: "space-between", 
-                fontWeight: 500 // 核心优化 2：增加字重，让“微信转账”变粗
+                fontWeight: 500
             }}>
                 <span>微信转账</span>
                 {isReceived && <span>已收款</span>}
@@ -730,6 +725,7 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
         </div>
     );
 }
+
 
 
 // ── Payment Request ─────────────────────────────
