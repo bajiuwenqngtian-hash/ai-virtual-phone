@@ -619,17 +619,18 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
     const isReceived = d?.status === "received";
     const isDeclined = d?.status === "declined";
 
-    // 微信原生颜色：已收/退回颜色变浅，未收为原生纯橙色
+    // 微信原生颜色
     const bgColor = isDeclined || isReceived ? "#F9E2C6" : "#F79C21";
-    // 图标与文字在处理后会有透明度变化
     const iconOpacity = isDeclined || isReceived ? 0.5 : 1;
     const textOpacity = isDeclined || isReceived ? 0.6 : 1;
-
-    // 判断是自己发出的，还是对方发出的
     const isUser = msg.role === "user";
+
+    // 核心优化 1：引入微信同款系统原生字体栈
+    const wechatFontFamily = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif';
 
     return (
         <div
+            className="custom-wechat-transfer" // 加了类名，以后可以直接在外部 CSS 里调样式
             style={{
                 position: "relative",
                 backgroundColor: bgColor,
@@ -640,46 +641,57 @@ function TransferBubble({ msg, charName, userName, onShowDetail }: {
                 textAlign: "left",
                 lineHeight: "normal",
                 cursor: "pointer",
-                // 留出尖角的空间，防止被父级容器裁切
                 marginLeft: isUser ? "0" : "6px",
                 marginRight: isUser ? "6px" : "0",
+                fontFamily: wechatFontFamily, // 应用系统字体
             }}
             onClick={() => onShowDetail?.(msg)}
         >
             {/* 微信原生小尖角 */}
-            <div style={{
-                position: "absolute",
-                top: "16px",
-                [isUser ? "right" : "left"]: "-5px",
-                width: 0,
-                height: 0,
-                borderTop: "5px solid transparent",
-                borderBottom: "5px solid transparent",
-                ...(isUser
-                    ? { borderLeft: `6px solid ${bgColor}` }
-                    : { borderRight: `6px solid ${bgColor}` }
-                )
+            <div 
+                className="custom-wechat-transfer-arrow"
+                style={{
+                    position: "absolute",
+                    top: "16px",
+                    [isUser ? "right" : "left"]: "-5px",
+                    width: 0,
+                    height: 0,
+                    borderTop: "5px solid transparent",
+                    borderBottom: "5px solid transparent",
+                    ...(isUser
+                        ? { borderLeft: `6px solid ${bgColor}` }
+                        : { borderRight: `6px solid ${bgColor}` }
+                    )
             }} />
 
-            {/* 核心内容区：图标与金额 */}
-            <div style={{ display: "inline-block", verticalAlign: "top", opacity: iconOpacity }}>
-                <img src="https://s1.imagehub.cc/images/2025/07/29/370e7d4202634cb69f2ba0c6f7ba41fd.png" width="38" style={{ verticalAlign: "top", marginRight: "12px", marginTop: "2px" }} alt="转账图标" />
-            </div>
-            
-            <div style={{ display: "inline-block", verticalAlign: "top", opacity: textOpacity }}>
-                <div style={{ fontSize: "19px", color: "#FFFFFF", fontWeight: 500, lineHeight: 1.1 }}>
-                    ¥{d?.amount?.toFixed(2) || "0.00"}
-                </div>
-                <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", lineHeight: 1.2, marginTop: "4px" }}>
-                    {d?.label || "转账"}
+            {/* 上半部：图标与金额 */}
+            <div style={{ display: "flex", alignItems: "center", paddingBottom: "11px", opacity: iconOpacity }}>
+                <img src="https://s1.imagehub.cc/images/2025/07/29/370e7d4202634cb69f2ba0c6f7ba41fd.png" width="38" style={{ marginRight: "12px", flexShrink: 0 }} alt="转账图标" />
+                
+                <div style={{ display: "flex", flexDirection: "column", opacity: textOpacity }}>
+                    <div style={{ fontSize: "19px", color: "#FFFFFF", fontWeight: 500, lineHeight: 1.1, letterSpacing: "0.5px" }}>
+                        ¥{d?.amount?.toFixed(2) || "0.00"}
+                    </div>
+                    <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", lineHeight: 1.2, marginTop: "4px" }}>
+                        {d?.label || "转账"}
+                    </div>
                 </div>
             </div>
 
             {/* 原生半透明白线 */}
-            <div style={{ height: "1px", backgroundColor: "rgba(255, 255, 255, 0.2)", margin: "12px 0 6px 0" }}></div>
+            <div style={{ height: "1px", backgroundColor: "rgba(255, 255, 255, 0.2)" }}></div>
 
-            {/* 底部文字：包含状态 */}
-            <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.65)", lineHeight: 1, display: "flex", justifyContent: "space-between" }}>
+            {/* 底部文字 */}
+            <div style={{ 
+                fontSize: "11px", 
+                color: "rgba(255, 255, 255, 0.8)", // 稍微调亮一点以配合加粗
+                lineHeight: 1, 
+                paddingTop: "6px", 
+                paddingBottom: "2px", 
+                display: "flex", 
+                justifyContent: "space-between", 
+                fontWeight: 500 // 核心优化 2：增加字重，让“微信转账”变粗
+            }}>
                 <span>微信转账</span>
                 {isReceived && <span>已收款</span>}
                 {isDeclined && <span>已退回</span>}
