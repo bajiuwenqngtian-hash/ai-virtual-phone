@@ -1,3 +1,21 @@
+/* 1. 引入苹方常规体 (Regular) - 对应正常粗细 */
+@font-face {
+  font-family: 'PingFangCustom';
+  src: url('/fonts/PingFangSC-Regular.woff2') format('woff2');
+  font-weight: 400; /* 400 代表常规 (normal) */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. 引入苹方中黑体 (Medium) - 对应稍微加粗 */
+@font-face {
+  font-family: 'PingFangCustom';
+  src: url('/fonts/PingFangSC-Medium.woff2') format('woff2');
+  font-weight: 500; /* 500 代表中等粗细 (medium) */
+  font-style: normal;
+  font-display: swap;
+}
+
 @import url("https://fontsapi.zeoseven.com/69/main/result.css");
 @import url("https://fontsapi.zeoseven.com/309/main/result.css");
 @import url("https://fontsapi.zeoseven.com/928/main/result.css");
