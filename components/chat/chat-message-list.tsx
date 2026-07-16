@@ -120,7 +120,7 @@ export function ChatMessageList({ onCloseApp, activeSession, onSelectSession, on
             {/* --- 新换上的微信风格顶部栏 --- */}
             <div className="absolute top-0 left-0 right-0 h-[70px] z-30 bg-[#EDEDED] flex items-center justify-between border-b border-[#E5E5E5] px-4 pt-[max(env(safe-area-inset-top,12px),12px)]">
                 <div className="w-8 h-8 cursor-pointer" onClick={onCloseApp}></div>
-                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[17px] text-[#000000] tracking-wide">微信</span>
+                <span className="absolute left-1/2 -translate-x-1/2 font-bold text-[16px] text-[#000000] tracking-wide">微信</span>
                 <div className="flex items-center gap-1 relative">
                                         <button onClick={() => { setIsSearchActive(!isSearchActive); setShowPlusMenu(false); }} className="w-10 h-10 flex items-center justify-center text-[#181818]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -554,9 +554,9 @@ function MascotSessionItem({
     onSelect: () => void;
 }) {
     return (
-                <div className="minimal-list-item h-[60px] !py-0 flex items-center" onClick={onSelect}>
+                <div className="minimal-list-item h-[68px] !py-0 flex items-center" onClick={onSelect}>
             <div className="minimal-avatar-wrapper bg-white">
-                <img src={avatarUrl} className="w-full h-full object-contain pointer-events-none rounded-full p-[2px]" alt="" />
+                <img src={avatarUrl} className="w-full h-full object-contain pointer-events-none rounded-[4.5px] p-[2px]" alt="" />
                 
             </div>
             <div className="flex-1 overflow-hidden h-full flex flex-col justify-center border-b border-[#F5F5F5]">
@@ -637,12 +637,12 @@ function SessionItem({ session, onSelect, isPinned }: { session: ChatSession, on
 
     return (
                 <div
-            className={`minimal-list-item${isPinned ? ' chat-pinned' : ''} h-[60px] !py-0 flex items-center`}
+            className={`minimal-list-item${isPinned ? ' chat-pinned' : ''} h-[68px] !py-0 flex items-center`}
             onClick={onSelect}
         >
 
             {isGroup ? (
-                <div className="minimal-avatar-wrapper grid grid-cols-2 grid-rows-2 gap-[1px] p-[2px] bg-[var(--c-card-border)] rounded-md overflow-hidden">
+                <div className="minimal-avatar-wrapper grid grid-cols-2 grid-rows-2 gap-[1px] p-[2px] bg-[var(--c-card-border)] rounded-[4.5px] overflow-hidden">
                     {groupAvatarItems.map((c) => (
                         <div key={c.id} className="overflow-hidden rounded-[2px] bg-[var(--c-page-body-bg)]">
                             {c.avatar ? (
@@ -659,9 +659,9 @@ function SessionItem({ session, onSelect, isPinned }: { session: ChatSession, on
             ) : (
                 <div className="minimal-avatar-wrapper">
                     {character?.avatar ? (
-                        <img src={character.avatar} className="w-full h-full object-cover pointer-events-none rounded-md" alt="" />
+                        <img src={character.avatar} className="w-full h-full object-cover pointer-events-none rounded-[4.5px]" alt="" />
                     ) : (
-                        <ChatFallbackAvatar className="pointer-events-none rounded-md" />
+                        <ChatFallbackAvatar className="pointer-events-none rounded-[4.5px]" />
                     )}
                     
                 </div>
