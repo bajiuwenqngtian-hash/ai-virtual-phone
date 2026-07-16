@@ -4736,7 +4736,7 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
         <ChevronLeft size={24} strokeWidth={1.5} />
     </button>
     <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
-        <span className="font-medium text-[17px] text-[#000000] truncate max-w-full">
+        <span className="font-medium text-[16px] text-[#000000] truncate max-w-full">
             {offlineMode ? "线下 · " : ""}
             {session.isGroup
                 ? `${session.groupName || "群聊"}(${(session.participantIds?.length || 0) + (session.isSpectator ? 0 : 1)})`
@@ -5278,13 +5278,30 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                             />
                                         </div>
                                                                                                                         {/* 微信原生风格的独立引用小尾巴 */}
-                                        {renderMsg.mediaType === "quote" && renderMsg.mediaData?.quotePreview && (
-                                            <div
-                                                className={`mt-[6px] text-[12px] text-black/40 bg-black/5 px-2 py-[3px] rounded-[3px] max-w-full truncate`}
-                                            >
-                                                {renderMsg.mediaData.quoteRole === "user" ? (userIdentity?.name || "你") : (renderMsg.senderName || character?.name || "对方")}: {renderMsg.mediaData.quotePreview}
-                                            </div>
-                                        )}
+{renderMsg.mediaType === "quote" && renderMsg.mediaData?.quotePreview && (
+    <div
+        className={`mt-[6px] text-[12px] text-black/40 bg-black/5 px-2 py-[3px] rounded-[3px] max-w-full truncate`}
+    >
+        {(() => {
+            // 1. 如果代码明确记录了被引用的是你（user）
+            if (renderMsg.mediaData?.quoteRole === "user") return (userIdentity?.name || "你") + ": ";
+            
+            // 2. 如果是你主动发出的引用，且引用的不是自己（即引用了对方）
+            if (renderMsg.role === "user") return (renderMsg.senderName || character?.name || "对方") + ": ";
+            
+            // 3. 走到这里说明是 AI 发出的引用
+            if (session.isGroup) {
+                // 群聊模式：既然不知道 AI 引用了群里谁，干脆不显示名字，避免张冠李戴
+                return ""; 
+            } else {
+                // 单聊模式：AI 肯定只能引用你
+                return (userIdentity?.name || "你") + ": "; 
+            }
+        })()}
+        {renderMsg.mediaData.quotePreview}
+    </div>
+)}
+
                                         </div>}
 
 
