@@ -622,9 +622,9 @@ padding-top: calc(max(env(safe-area-inset-top, 20px), 20px) + 64px);
   right: 0;
   z-index: 10;
   padding: 10px 16px;
-  background: color-mix(in srgb, var(--c-input, var(--c-page-body-bg)) 55%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #EDEDED !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .chat-input-bar .chat-input-textarea {
@@ -990,12 +990,12 @@ padding-top: calc(max(env(safe-area-inset-top, 20px), 20px) + 64px);
   overflow: visible;
 }
 .chat-bubble-role-user {
-  background: var(--c-bubble-self);
-  color: #fff;
+  background: #95ec69 !important;
+  color: #000;
 }
 .chat-bubble-role-assistant {
-  background: var(--c-bubble-other);
-  color: var(--c-text-title);
+  background: #ffffff !important;
+  color: #000;
 }
 
 /* ── Context menu ── */
