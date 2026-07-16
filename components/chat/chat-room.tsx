@@ -680,7 +680,8 @@ const ChatTextInputBar = memo(forwardRef<ChatTextInputHandle, {
     ];
 
     return (
-        <div className="chat-input-bar flex-shrink-0 flex flex-col" data-ui="input">
+        <div className="chat-input-bar flex-shrink-0 flex flex-col bg-[#EDEDED]" data-ui="input">
+
             {theaterMode && (
                 <div className="chat-theater-mode-strip" role="status">
                     <span className="chat-theater-mode-icon" aria-hidden="true">
