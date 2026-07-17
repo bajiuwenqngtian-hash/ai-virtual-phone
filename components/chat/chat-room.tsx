@@ -5282,8 +5282,9 @@ export function ChatRoom({ session, onBack }: ChatRoomProps) {
                                      {/* 微信原生风格的独立引用小尾巴 */}
 {renderMsg.mediaType === "quote" && renderMsg.mediaData?.quotePreview && (
     <div
-    className={`mt-[6px] text-[12px] text-black/40 bg-black/5 px-2 py-[3px] rounded-[3px] max-w-full line-clamp-2 font-semibold`}
+    className={`mt-[6px] text-[12px] text-black/40 bg-black/5 px-2 py-[3px] rounded-[3px] max-w-full line-clamp-2 wx-quote-box`}
 >
+
 
         {(() => {
             // 1. 如果代码明确记录了被引用的是你（user）
