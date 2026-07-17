@@ -60,7 +60,7 @@
 @font-face {
   font-family: 'WeChatSans';
   src: url('/fonts/WeChat Sans.woff2') format('woff2');
-  font-weight: 500; /* 500 代表中等粗细 (medium) */
+  font-weight: 400; /* 5*/
   font-style: normal;
   font-display: swap;
 }
