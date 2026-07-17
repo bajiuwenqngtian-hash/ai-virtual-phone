@@ -56,7 +56,7 @@
   font-display: swap;
 }
 
-/*  引入WeChat Sans- 对应稍微加粗 */
+/*  引入WeChat Sans */
 @font-face {
   font-family: 'WeChatSans3';
   src: url('/fonts/WeChatSans3.ttf') format(truetype');
@@ -64,6 +64,17 @@
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: 'WeChatSans';
+  src: url('/fonts/WeChatSans.woff') format('woff');
+  font-weight: 400; /*/
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
 
 @theme {
   /* 间距 (4px 基准) */
