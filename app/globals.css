@@ -47,6 +47,14 @@
   font-display: swap;
 }
 
+/*  引入苹方黑体 () - 对应加粗 */
+@font-face {
+  font-family: 'PingFangSemibold';
+  src: url('/fonts/PingFangSC-Semibold.woff2') format('woff2');
+  font-weight: 600; /* 600 代表加粗 (medium) */
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   /* 间距 (4px 基准) */
