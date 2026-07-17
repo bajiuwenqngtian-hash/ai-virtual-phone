@@ -56,6 +56,15 @@
   font-display: swap;
 }
 
+/*  引入WeChat Sans- 对应稍微加粗 */
+@font-face {
+  font-family: 'WeChatSans';
+  src: url('/fonts/WeChat Sans.woff2') format('woff2');
+  font-weight: 500; /* 500 代表中等粗细 (medium) */
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* 间距 (4px 基准) */
   --spacing-0_5: 2px;  --spacing-1: 4px;   --spacing-1_5: 6px;
