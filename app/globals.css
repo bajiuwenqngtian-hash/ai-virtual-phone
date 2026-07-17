@@ -56,19 +56,19 @@
   font-display: swap;
 }
 
-/*  引入WeChat Sans */
+/*  引入WeChatSans */
 @font-face {
-  font-family: 'Sans';
-  src: url('/fonts/Sans.ttf') format(truetype');
-  font-weight: 400; /* */
+  font-family: 'WeChatSansStd-Medium';
+  src: url('/fonts/WeChatSansStd-Medium.ttf') format('truetype');
+  font-weight: 500; /* */
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'WeChatSans';
-  src: url('/fonts/WeChatSans.woff') format('woff');
-  font-weight: 400; /*/
+  font-family: 'WeChatSansStd-Regular'; /* 名称可自定义 */
+  src: url('/fonts/WeChatSansStd-Regular.ttf') format('truetype'); /* 核心修改处 */
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
