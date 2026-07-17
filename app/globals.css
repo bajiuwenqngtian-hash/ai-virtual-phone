@@ -59,7 +59,7 @@
 /*  引入WeChat Sans- 对应稍微加粗 */
 @font-face {
   font-family: 'WeChatSans';
-  src: url('/fonts/WeChat Sans.woff2') format('woff2');
+  src: url('/fonts/WeChatSans.woff2') format('woff2');
   font-weight: 400; /* 5*/
   font-style: normal;
   font-display: swap;
